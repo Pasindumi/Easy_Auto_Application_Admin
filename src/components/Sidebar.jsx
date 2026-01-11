@@ -22,6 +22,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
         { name: 'Sell Ads', path: '/ads', icon: Car },
         { name: 'Vehicle Types', path: '/vehicle-types', icon: Tags },
+        { name: 'Packages & Pricing', path: '/pricing', icon: Sliders },
         { name: 'System Limits', path: '/settings/limits', icon: Settings },
     ];
 

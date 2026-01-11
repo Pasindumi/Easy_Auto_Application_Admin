@@ -45,12 +45,18 @@ export default function VehicleTypes() {
         try {
             const token = localStorage.getItem('adminToken');
             const newStatus = currentStatus === 'ACTIVE' ? 'DISABLED' : 'ACTIVE';
-            await axios.put(`http://localhost:5000/api/vehicle-config/types/${id}`, {
+            await axios.put(`http://localhost:5000/api/vehicle-config/types/${id}/status`, {
                 status: newStatus
             }, { headers: { Authorization: `Bearer ${token}` } });
             fetchTypes();
         } catch (error) {
-            console.error(error);
+            console.error('Error toggling status:', error);
+            if (error.response?.status === 401) {
+                alert('Session expired. Please login again.');
+                navigate('/login');
+            } else {
+                alert('Failed to update status');
+            }
         }
     }
 

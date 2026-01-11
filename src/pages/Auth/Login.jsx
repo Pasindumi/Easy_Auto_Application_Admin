@@ -9,6 +9,7 @@ export default function Login() {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
     const { login } = useAuth();
     const navigate = useNavigate();
 
@@ -24,8 +25,11 @@ export default function Login() {
             });
 
             if (response.data.success) {
-                login(response.data.admin, response.data.token);
-                navigate('/');
+                setSuccess(response.data.message || 'Login successful!');
+                setTimeout(() => {
+                    login(response.data.admin, response.data.token);
+                    navigate('/');
+                }, 1500);
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
@@ -53,6 +57,13 @@ export default function Login() {
                         <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3">
                             <AlertCircle className="text-red-500 w-5 h-5 shrink-0" />
                             <p className="text-sm text-red-600 font-medium pt-0.5">{error}</p>
+                        </div>
+                    )}
+
+                    {success && (
+                        <div className="mb-6 p-4 bg-green-50 border border-green-100 rounded-xl flex items-start gap-3">
+                            <Shield className="text-green-500 w-5 h-5 shrink-0" />
+                            <p className="text-sm text-green-600 font-medium pt-0.5">{success}</p>
                         </div>
                     )}
 

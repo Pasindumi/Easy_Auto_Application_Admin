@@ -9,6 +9,7 @@ import VehicleTypes from './pages/VehicleTypes/Index';
 import VehicleTypeDetails from './pages/VehicleTypes/Details';
 import Ads from './pages/Ads/Index';
 import SystemLimits from './pages/Settings/SystemLimits';
+import PricingPage from './pages/PricingPage';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path="/vehicle-types" element={<VehicleTypes />} />
             <Route path="/vehicle-types/:id" element={<VehicleTypeDetails />} />
             <Route path="/ads" element={<Ads />} />
+            <Route path="/pricing" element={<PricingPage />} />
             <Route path="/settings/limits" element={<SystemLimits />} />
           </Route>
 
