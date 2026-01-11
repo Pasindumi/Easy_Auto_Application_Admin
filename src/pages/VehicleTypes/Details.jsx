@@ -10,12 +10,14 @@ export default function VehicleTypeDetails() {
     const [brands, setBrands] = useState([]);
     const [attributes, setAttributes] = useState([]);
     const [models, setModels] = useState([]);
+    const [conditions, setConditions] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Forms
     const [newBrand, setNewBrand] = useState('');
     const [newAttr, setNewAttr] = useState({ name: '', dataType: 'TEXT', unit: '', required: false });
     const [newModel, setNewModel] = useState({ brand_id: '', model_name: '' });
+    const [newCondition, setNewCondition] = useState('');
 
     const fetchDetails = async () => {
         try {
@@ -34,6 +36,9 @@ export default function VehicleTypeDetails() {
 
             const modelsRes = await axios.get(`http://localhost:5000/api/vehicle-config/models/${id}`);
             setModels(modelsRes.data);
+
+            const conditionsRes = await axios.get(`http://localhost:5000/api/vehicle-config/conditions/${id}`);
+            setConditions(conditionsRes.data);
 
         } catch (error) {
             console.error(error);
@@ -56,7 +61,15 @@ export default function VehicleTypeDetails() {
             }, { headers: { Authorization: `Bearer ${token}` } });
             setNewBrand('');
             fetchDetails();
-        } catch (e) { alert('Error adding brand'); }
+        } catch (e) {
+            console.error('Error adding brand:', e);
+            if (e.response?.status === 401) {
+                alert('Session expired. Please login again.');
+                navigate('/login');
+            } else {
+                alert('Error adding brand');
+            }
+        }
     };
 
     const addAttribute = async () => {
@@ -73,7 +86,15 @@ export default function VehicleTypeDetails() {
             }, { headers: { Authorization: `Bearer ${token}` } });
             setNewAttr({ name: '', dataType: 'TEXT', unit: '', required: false });
             fetchDetails();
-        } catch (e) { alert('Error adding attribute'); }
+        } catch (e) {
+            console.error('Error adding attribute:', e);
+            if (e.response?.status === 401) {
+                alert('Session expired. Please login again.');
+                navigate('/login');
+            } else {
+                alert('Error adding attribute');
+            }
+        }
     };
 
     const addModel = async () => {
@@ -87,7 +108,50 @@ export default function VehicleTypeDetails() {
             }, { headers: { Authorization: `Bearer ${token}` } });
             setNewModel({ brand_id: '', model_name: '' });
             fetchDetails();
-        } catch (e) { alert('Error adding model'); }
+        } catch (e) {
+            console.error('Error adding model:', e);
+            if (e.response?.status === 401) {
+                alert('Session expired. Please login again.');
+                navigate('/login');
+            } else {
+                alert('Error adding model');
+            }
+        }
+    };
+
+    const addCondition = async () => {
+        if (!newCondition) return;
+        try {
+            const token = localStorage.getItem('adminToken');
+            await axios.post('http://localhost:5000/api/vehicle-config/conditions', {
+                vehicle_type_id: id,
+                condition_name: newCondition
+            }, { headers: { Authorization: `Bearer ${token}` } });
+            setNewCondition('');
+            fetchDetails();
+        } catch (e) {
+            console.error('Error adding condition:', e);
+            if (e.response?.status === 401) {
+                alert('Session expired. Please login again.');
+                navigate('/login');
+            } else {
+                alert('Error adding condition');
+            }
+        }
+    };
+
+    const deleteCondition = async (condId) => {
+        if (!window.confirm('Are you sure you want to delete this condition?')) return;
+        try {
+            const token = localStorage.getItem('adminToken');
+            await axios.delete(`http://localhost:5000/api/vehicle-config/conditions/${condId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            fetchDetails();
+        } catch (e) {
+            console.error('Error deleting condition:', e);
+            alert('Error deleting condition');
+        }
     };
 
     if (!type && !loading) return <div>Type not found</div>;
@@ -182,6 +246,31 @@ export default function VehicleTypeDetails() {
                         ))}
                         {attributes.length === 0 && <p className="text-gray-400 text-sm">No attributes added yet.</p>}
                     </div>
+                </div>
+            </div>
+
+            {/* Conditions Section */}
+            <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 className="text-xl font-bold mb-4">Conditions</h2>
+                <div className="flex gap-2 mb-4 max-w-md">
+                    <input
+                        className="flex-1 border border-gray-300 rounded-lg p-2"
+                        placeholder="Add Condition (e.g. Brand New)"
+                        value={newCondition}
+                        onChange={e => setNewCondition(e.target.value)}
+                    />
+                    <button onClick={addCondition} className="bg-gray-900 text-white px-4 rounded-lg hover:bg-black">Add</button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                    {conditions.map(c => (
+                        <div key={c.id} className="bg-gray-100 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
+                            {c.condition_name}
+                            <button onClick={() => deleteCondition(c.id)} className="text-gray-400 hover:text-red-500">
+                                <Trash2 size={14} />
+                            </button>
+                        </div>
+                    ))}
+                    {conditions.length === 0 && <p className="text-gray-400 text-sm">No conditions added yet (e.g. Used, Brand New).</p>}
                 </div>
             </div>
 
