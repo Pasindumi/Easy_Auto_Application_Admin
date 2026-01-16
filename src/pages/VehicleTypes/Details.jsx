@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { configApi } from '../../api';
 import { ArrowLeft, Trash2, Plus, Info } from 'lucide-react';
 
 export default function VehicleTypeDetails() {
@@ -21,27 +21,25 @@ export default function VehicleTypeDetails() {
 
     const fetchDetails = async () => {
         try {
-            const token = localStorage.getItem('adminToken');
-            // Fetch Type Info (Not implemented in backend yet separately, but accessible via list, or we add a getById)
-            // Workaround: Get list and find (Optimization needed later)
-            const typesRes = await axios.get('http://localhost:5000/api/vehicle-config/types');
+            // Fetch Type Info
+            const typesRes = await configApi.getTypes();
             const found = typesRes.data.find(t => t.id === id);
             setType(found);
 
-            const brandsRes = await axios.get(`http://localhost:5000/api/vehicle-config/brands/${id}`);
+            const brandsRes = await configApi.getBrands(id);
             setBrands(brandsRes.data);
 
-            const attrsRes = await axios.get(`http://localhost:5000/api/vehicle-config/attributes/${id}`);
+            const attrsRes = await configApi.getAttributes(id);
             setAttributes(attrsRes.data);
 
-            const modelsRes = await axios.get(`http://localhost:5000/api/vehicle-config/models/${id}`);
+            const modelsRes = await configApi.getModels(id);
             setModels(modelsRes.data);
 
-            const conditionsRes = await axios.get(`http://localhost:5000/api/vehicle-config/conditions/${id}`);
+            const conditionsRes = await configApi.getConditions(id);
             setConditions(conditionsRes.data);
 
         } catch (error) {
-            console.error(error);
+            console.error("Error fetching details:", error);
         } finally {
             setLoading(false);
         }
@@ -54,99 +52,72 @@ export default function VehicleTypeDetails() {
     const addBrand = async () => {
         if (!newBrand) return;
         try {
-            const token = localStorage.getItem('adminToken');
-            await axios.post('http://localhost:5000/api/vehicle-config/brands', {
+            await configApi.addBrand({
                 vehicle_type_id: id,
                 brand_name: newBrand
-            }, { headers: { Authorization: `Bearer ${token}` } });
+            });
             setNewBrand('');
             fetchDetails();
         } catch (e) {
             console.error('Error adding brand:', e);
-            if (e.response?.status === 401) {
-                alert('Session expired. Please login again.');
-                navigate('/login');
-            } else {
-                alert('Error adding brand');
-            }
+            alert('Error adding brand');
         }
     };
 
     const addAttribute = async () => {
         if (!newAttr.name) return;
         try {
-            const token = localStorage.getItem('adminToken');
-            await axios.post('http://localhost:5000/api/vehicle-config/attributes', {
+            await configApi.addAttribute({
                 vehicle_type_id: id,
                 attribute_name: newAttr.name,
                 data_type: newAttr.dataType,
                 unit: newAttr.unit,
                 is_required: newAttr.required,
                 options: [] // Simplified for now
-            }, { headers: { Authorization: `Bearer ${token}` } });
+            });
             setNewAttr({ name: '', dataType: 'TEXT', unit: '', required: false });
             fetchDetails();
         } catch (e) {
             console.error('Error adding attribute:', e);
-            if (e.response?.status === 401) {
-                alert('Session expired. Please login again.');
-                navigate('/login');
-            } else {
-                alert('Error adding attribute');
-            }
+            alert('Error adding attribute');
         }
     };
 
     const addModel = async () => {
         if (!newModel.brand_id || !newModel.model_name) return;
         try {
-            const token = localStorage.getItem('adminToken');
-            await axios.post('http://localhost:5000/api/vehicle-config/models', {
+            await configApi.addModel({
                 vehicle_type_id: id,
                 brand_id: newModel.brand_id,
                 model_name: newModel.model_name
-            }, { headers: { Authorization: `Bearer ${token}` } });
+            });
             setNewModel({ brand_id: '', model_name: '' });
             fetchDetails();
         } catch (e) {
             console.error('Error adding model:', e);
-            if (e.response?.status === 401) {
-                alert('Session expired. Please login again.');
-                navigate('/login');
-            } else {
-                alert('Error adding model');
-            }
+            alert('Error adding model');
         }
     };
 
     const addCondition = async () => {
         if (!newCondition) return;
         try {
-            const token = localStorage.getItem('adminToken');
-            await axios.post('http://localhost:5000/api/vehicle-config/conditions', {
+            await configApi.addCondition({
                 vehicle_type_id: id,
                 condition_name: newCondition
-            }, { headers: { Authorization: `Bearer ${token}` } });
+            });
             setNewCondition('');
             fetchDetails();
         } catch (e) {
             console.error('Error adding condition:', e);
-            if (e.response?.status === 401) {
-                alert('Session expired. Please login again.');
-                navigate('/login');
-            } else {
-                alert('Error adding condition');
-            }
+            alert('Error adding condition');
         }
     };
 
     const deleteCondition = async (condId) => {
         if (!window.confirm('Are you sure you want to delete this condition?')) return;
         try {
-            const token = localStorage.getItem('adminToken');
-            await axios.delete(`http://localhost:5000/api/vehicle-config/conditions/${condId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await configApi.deleteCondition(condId);
             fetchDetails();
         } catch (e) {
             console.error('Error deleting condition:', e);
