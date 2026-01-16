@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { adsApi } from '../../api';
 import { CheckCircle, XCircle, Clock, Eye, X } from 'lucide-react';
 
 export default function Ads() {
@@ -11,10 +11,7 @@ export default function Ads() {
     const fetchAds = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('adminToken');
-            const res = await axios.get(`http://localhost:5000/api/cars/admin/all?status=${filter}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await adsApi.getAll(filter);
             if (res.data.success) {
                 setAds(res.data.data);
             }
@@ -31,14 +28,11 @@ export default function Ads() {
 
     const updateStatus = async (id, status) => {
         try {
-            const token = localStorage.getItem('adminToken');
-            await axios.put(`http://localhost:5000/api/cars/admin/${id}/status`, { status }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await adsApi.updateStatus(id, { status });
             setSelectedAd(null);
             fetchAds();
         } catch (error) {
-            alert("Failed to update status");
+            console.error("Failed to update status", error);
         }
     };
 
@@ -63,7 +57,7 @@ export default function Ads() {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-800">Ads Management</h1>
                 <div className="flex gap-2">
-                    {['', 'PENDING', 'ACTIVE', 'SOLD'].map(s => (
+                    {['', 'DRAFT', 'PENDING', 'ACTIVE', 'SOLD', 'REJECTED'].map(s => (
                         <button
                             key={s}
                             onClick={() => setFilter(s)}
@@ -126,58 +120,192 @@ export default function Ads() {
             {/* Detail Modal */}
             {selectedAd && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
-                            <h2 className="text-xl font-bold">{selectedAd.title}</h2>
-                            <button onClick={() => setSelectedAd(null)} className="p-2 hover:bg-gray-100 rounded-full"><X size={20} /></button>
-                        </div>
-                        <div className="p-6 space-y-6">
-                            <div className="bg-gray-50 p-4 rounded-xl flex gap-4 overflow-x-auto">
-                                {selectedAd.AdImage?.map(img => (
-                                    <img key={img.id} src={img.image_url} className="h-32 rounded-lg" />
-                                ))}
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-xs text-gray-500 uppercase font-bold">Price</label>
-                                    <p className="text-lg font-bold">${selectedAd.price?.toLocaleString()}</p>
-                                </div>
-                                <div>
-                                    <label className="text-xs text-gray-500 uppercase font-bold">Location</label>
-                                    <p className="text-lg">{selectedAd.location}</p>
-                                </div>
-                            </div>
-
+                    <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white z-10">
                             <div>
-                                <label className="text-xs text-gray-500 uppercase font-bold">Description</label>
-                                <p className="text-gray-700 whitespace-pre-wrap">{selectedAd.description}</p>
+                                <h2 className="text-xl font-bold text-gray-900">{selectedAd.title}</h2>
+                                <p className="text-sm text-gray-500">Ad ID: {selectedAd.id}</p>
+                            </div>
+                            <button onClick={() => setSelectedAd(null)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-8">
+                            {/* Images Section */}
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Advertisement Images</h3>
+                                <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-200">
+                                    {selectedAd.AdImage?.length > 0 ? (
+                                        selectedAd.AdImage.map(img => (
+                                            <img key={img.id} src={img.image_url} className="h-48 w-72 object-cover rounded-xl border border-gray-100 flex-shrink-0" alt="car" />
+                                        ))
+                                    ) : (
+                                        <div className="h-48 w-full bg-gray-50 rounded-xl flex items-center justify-center text-gray-400">No images available</div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* Left Column: Basic & Seller Info */}
+                                <div className="space-y-8">
+                                    {/* Basic Info */}
+                                    <section className="bg-gray-50 p-5 rounded-2xl border border-gray-100">
+                                        <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                                            Basic Information
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-y-4 text-sm">
+                                            <div>
+                                                <p className="text-gray-500 mb-0.5">Price</p>
+                                                <p className="font-bold text-lg text-primary">${selectedAd.price?.toLocaleString()}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-500 mb-0.5">Status</p>
+                                                <StatusBadge status={selectedAd.status} />
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-500 mb-0.5">Location</p>
+                                                <p className="font-medium">{selectedAd.location}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-500 mb-0.5">Vehicle Type</p>
+                                                <p className="font-medium">{selectedAd.vehicle_type?.type_name || 'N/A'}</p>
+                                            </div>
+                                        </div>
+                                    </section>
+
+                                    {/* Seller Info */}
+                                    <section className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
+                                        <h3 className="text-sm font-bold text-blue-900 mb-4 flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                                            Seller Details
+                                        </h3>
+                                        {selectedAd.seller ? (
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <p className="text-gray-500 text-xs mb-0.5">Full Name</p>
+                                                    <p className="font-semibold text-gray-900">{selectedAd.seller.name}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-gray-500 text-xs mb-0.5">Email Address</p>
+                                                    <p className="font-medium text-gray-800">{selectedAd.seller.email}</p>
+                                                </div>
+                                                {selectedAd.seller.phone && (
+                                                    <div>
+                                                        <p className="text-gray-500 text-xs mb-0.5">Phone Number</p>
+                                                        <p className="font-medium text-gray-800">{selectedAd.seller.phone}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <p className="text-sm text-gray-500 italic">Seller information not available</p>
+                                        )}
+                                    </section>
+                                </div>
+
+                                {/* Right Column: Vehicle & Dynamic Attributes */}
+                                <div className="space-y-8">
+                                    {/* Vehicle Specifications (Static + Dynamic merged) */}
+                                    {(() => {
+                                        const detailsData = selectedAd.CarDetails;
+                                        const details = Array.isArray(detailsData) ? (detailsData[0] || {}) : (detailsData || {});
+
+                                        const staticSpecs = [
+                                            { label: 'Condition', value: details.condition },
+                                            { label: 'Brand', value: details.brand },
+                                            { label: 'Model', value: details.model },
+                                            { label: 'Year', value: details.year },
+                                            { label: 'Mileage', value: details.mileage },
+                                            { label: 'Engine', value: details.engine_capacity },
+                                            { label: 'Fuel Type', value: details.fuel_type },
+                                            { label: 'Transmission', value: details.transmission },
+                                            { label: 'Body Type', value: details.body_type },
+                                        ].filter(item => {
+                                            const val = item.value;
+                                            return val !== null && val !== undefined && val !== '' && val !== '—' && val !== 'undefined' && val !== 'null';
+                                        });
+
+                                        if (staticSpecs.length === 0) return null;
+
+                                        return (
+                                            <section className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                                                <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                                                    Vehicle Specifications
+                                                </h3>
+                                                <div className="grid grid-cols-2 gap-x-4 gap-y-4 text-sm">
+                                                    {staticSpecs.map((item, idx) => (
+                                                        <div key={idx}>
+                                                            <p className="text-gray-400 text-xs mb-0.5">{item.label}</p>
+                                                            <p className="font-semibold text-gray-700 capitalize">{item.value}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        );
+                                    })()}
+
+                                    {/* Additional Attributes (Dynamic) */}
+                                    {(() => {
+                                        const dynamicAttrs = (selectedAd.attributes || []).filter(attr =>
+                                            attr.value && attr.value !== 'undefined' && attr.value !== 'null' && attr.value !== ''
+                                        );
+
+                                        if (dynamicAttrs.length === 0) return null;
+
+                                        return (
+                                            <section className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                                                <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                                    <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+                                                    Additional Features
+                                                </h3>
+                                                <div className="grid grid-cols-2 gap-x-4 gap-y-4 text-sm">
+                                                    {dynamicAttrs.map((attr, idx) => (
+                                                        <div key={idx}>
+                                                            <p className="text-gray-400 text-xs mb-0.5">{attr.attribute?.attribute_name}</p>
+                                                            <p className="font-semibold text-gray-700">
+                                                                {attr.value} {attr.attribute?.unit && attr.attribute.unit !== 'none' ? attr.attribute.unit : ''}
+                                                            </p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        );
+                                    })()}
+                                </div>
+                            </div>
+
+                            {/* Description Section */}
+                            <div className="bg-gray-50 p-6 rounded-2xl">
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Description</h3>
+                                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{selectedAd.description}</p>
                             </div>
 
                             {/* Actions */}
-                            <div className="flex justify-end gap-3 pt-4 border-t">
+                            <div className="flex justify-end gap-3 pt-6 border-t border-gray-100 sticky bottom-0 bg-white pb-2">
                                 {(selectedAd.status === 'PENDING' || selectedAd.status === 'DRAFT') && (
                                     <>
                                         <button
                                             onClick={() => updateStatus(selectedAd.id, 'ACTIVE')}
-                                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                                            className="px-6 py-2.5 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 flex items-center gap-2 transition-all shadow-lg shadow-green-200"
                                         >
-                                            <CheckCircle size={18} /> Approve
+                                            <CheckCircle size={20} /> Approve Ad
                                         </button>
                                         <button
                                             onClick={() => updateStatus(selectedAd.id, 'REJECTED')}
-                                            className="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 flex items-center gap-2"
+                                            className="px-6 py-2.5 bg-red-100 text-red-600 font-bold rounded-xl hover:bg-red-200 flex items-center gap-2 transition-all"
                                         >
-                                            <XCircle size={18} /> Reject
+                                            <XCircle size={20} /> Reject
                                         </button>
                                     </>
                                 )}
                                 {selectedAd.status === 'ACTIVE' && (
                                     <button
                                         onClick={() => updateStatus(selectedAd.id, 'EXPIRED')}
-                                        className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 flex items-center gap-2"
+                                        className="px-6 py-2.5 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 flex items-center gap-2 transition-all"
                                     >
-                                        <Clock size={18} /> Expire / Disable
+                                        <Clock size={20} /> Mark as Expired
                                     </button>
                                 )}
                             </div>

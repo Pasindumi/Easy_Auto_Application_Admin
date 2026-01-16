@@ -1,25 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { Lock, Mail, User, Loader2, AlertCircle, Shield } from 'lucide-react';
-import axios from 'axios';
+import { User, Mail, Lock, Shield, Loader2, AlertCircle } from 'lucide-react';
+import { authApi } from '../../api';
 
 export default function Signup() {
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        password: '',
-        secretKey: '' // Simple protection for admin signup
-    });
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [role, setRole] = useState('MODERATOR');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const { login } = useAuth();
     const navigate = useNavigate();
-
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
 
     const handleSignup = async (e) => {
         e.preventDefault();
@@ -27,23 +19,19 @@ export default function Signup() {
         setError('');
 
         try {
-            // Use localhost path
-            const response = await axios.post('http://localhost:5000/api/admin/signup', {
-                name: formData.name,
-                email: formData.email,
-                password: formData.password,
-                role: 'MODERATOR' // Default to moderator, needing super admin to promote usually
+            const response = await authApi.signup({
+                name,
+                email,
+                password,
+                role
             });
 
             if (response.data.success) {
-                setSuccess(response.data.message || 'Admin account created successfully!');
-                setTimeout(() => {
-                    login(response.data.admin, response.data.token);
-                    navigate('/');
-                }, 1500);
+                setSuccess(response.data.message || 'Account created successfully!');
+                setTimeout(() => navigate('/login'), 2000);
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Signup failed.');
+            setError(err.response?.data?.message || 'Signup failed. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -84,13 +72,12 @@ export default function Signup() {
                             <div className="relative">
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                                 <input
-                                    name="name"
                                     type="text"
                                     required
                                     className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
                                     placeholder="John Doe"
-                                    value={formData.name}
-                                    onChange={handleChange}
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
                                 />
                             </div>
                         </div>
@@ -100,13 +87,12 @@ export default function Signup() {
                             <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                                 <input
-                                    name="email"
                                     type="email"
                                     required
                                     className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
                                     placeholder="admin@easyauto.com"
-                                    value={formData.email}
-                                    onChange={handleChange}
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                 />
                             </div>
                         </div>
@@ -116,13 +102,12 @@ export default function Signup() {
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                                 <input
-                                    name="password"
                                     type="password"
                                     required
                                     className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
                                     placeholder="••••••••"
-                                    value={formData.password}
-                                    onChange={handleChange}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
                                 />
                             </div>
                         </div>

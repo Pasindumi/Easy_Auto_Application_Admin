@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Lock, Mail, Loader2, AlertCircle, Shield } from 'lucide-react';
-import axios from 'axios';
+import { authApi } from '../../api';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -19,7 +19,7 @@ export default function Login() {
         setError('');
 
         try {
-            const response = await axios.post('http://localhost:5000/api/admin/login', {
+            const response = await authApi.login({
                 email,
                 password
             });

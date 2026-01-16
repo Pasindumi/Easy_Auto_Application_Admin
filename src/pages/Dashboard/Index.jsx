@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { dashApi } from '../../api';
 import {
     Users,
     Car,
@@ -16,10 +16,7 @@ export default function Dashboard() {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const token = localStorage.getItem('adminToken');
-                const response = await axios.get('http://localhost:5000/api/admin/stats', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const response = await dashApi.getStats();
                 if (response.data.success) {
                     setStats(response.data.data);
                 }
