@@ -10,6 +10,7 @@ import VehicleTypeDetails from './pages/VehicleTypes/Details';
 import Ads from './pages/Ads/Index';
 import SystemLimits from './pages/Settings/SystemLimits';
 import PricingPage from './pages/PricingPage';
+import DiscountsPage from './pages/DiscountsPage';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
             <Route path="/vehicle-types/:id" element={<VehicleTypeDetails />} />
             <Route path="/ads" element={<Ads />} />
             <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/discounts" element={<DiscountsPage />} />
             <Route path="/settings/limits" element={<SystemLimits />} />
           </Route>
 

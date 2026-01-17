@@ -10,6 +10,7 @@ import {
     X,
     Tags,
     Sliders,
+    Percent,
     ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -23,6 +24,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
         { name: 'Sell Ads', path: '/ads', icon: Car },
         { name: 'Vehicle Types', path: '/vehicle-types', icon: Tags },
         { name: 'Packages & Pricing', path: '/pricing', icon: Sliders },
+        { name: 'Discounts & Offers', path: '/discounts', icon: Percent },
         { name: 'System Limits', path: '/settings/limits', icon: Settings },
     ];
 

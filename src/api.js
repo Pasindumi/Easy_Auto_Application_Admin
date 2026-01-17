@@ -88,4 +88,12 @@ export const pricingApi = {
     deletePackageItem: (id) => api.delete(`/pricing/package-items/${id}`),
 };
 
+// Discounts API
+export const discountsApi = {
+    getAll: () => api.get('/discounts'),
+    create: (data) => api.post('/discounts', data),
+    update: (id, data) => api.put(`/discounts/${id}`, data),
+    delete: (id) => api.delete(`/discounts/${id}`),
+};
+
 export default api;
