@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, Package, Tag, Layers, MoreVertical, DollarSign, Calendar } from 'lucide-react';
-import { pricingApi } from '../api';
+import { pricingApi, configApi } from '../api';
 import ManagePackageModal from '../components/ManagePackageModal';
 
 export default function PricingPage() {
-    const [activeTab, setActiveTab] = useState('items'); // 'items' | 'rules'
+    const [activeTab, setActiveTab] = useState('ads'); // 'ads' | 'items' | 'rules'
     const [items, setItems] = useState([]);
     const [rules, setRules] = useState([]);
+    const [vehicleTypes, setVehicleTypes] = useState([]);
     const [loading, setLoading] = useState(false);
 
     // Modal States
@@ -17,10 +18,13 @@ export default function PricingPage() {
     // Selection States
     const [selectedItem, setSelectedItem] = useState(null); // For editing or adding features
     const [newItem, setNewItem] = useState({ code: '', name: '', item_type: 'AD', description: '', status: 'ACTIVE' });
-    const [newRule, setNewRule] = useState({ price_item_id: '', price: '', unit: 'PER_AD', min_qty: 1 });
+    const [newRule, setNewRule] = useState({ price_item_id: '', vehicle_type_id: '', price: '', unit: 'PER_AD', free_image_count: 0, min_qty: 1 });
+
+    const [editingRuleId, setEditingRuleId] = useState(null);
 
     useEffect(() => {
         fetchData();
+        fetchVehicleTypes();
     }, [activeTab]);
 
     const fetchData = async () => {
@@ -43,6 +47,15 @@ export default function PricingPage() {
         }
     };
 
+    const fetchVehicleTypes = async () => {
+        try {
+            const res = await configApi.getTypes();
+            setVehicleTypes(res.data);
+        } catch (error) {
+            console.error("Failed to load vehicle types", error);
+        }
+    };
+
     const handleCreateItem = async () => {
         try {
             await pricingApi.createItem(newItem);
@@ -54,15 +67,49 @@ export default function PricingPage() {
         }
     };
 
-    const handleCreateRule = async () => {
+    const handleSaveRule = async () => {
         try {
-            await pricingApi.createRule(newRule);
+            // Auto-select AD item if not selected and we are in ads tab
+            let ruleToSubmit = { ...newRule };
+
+            // Basic validation
+            if (!ruleToSubmit.price_item_id) {
+                // Try to find a default AD item
+                const adItem = items.find(i => i.item_type === 'AD');
+                if (adItem) {
+                    ruleToSubmit.price_item_id = adItem.id;
+                } else {
+                    alert("Please select a Price Item (e.g., AD Base Price). If none exist, create one in Price Items tab.");
+                    return;
+                }
+            }
+
+            if (editingRuleId) {
+                await pricingApi.updateRule(editingRuleId, ruleToSubmit);
+            } else {
+                await pricingApi.createRule(ruleToSubmit);
+            }
+
             setIsRuleModalOpen(false);
+            setEditingRuleId(null);
             fetchData();
-            setNewRule({ price_item_id: '', price: '', unit: 'PER_AD', min_qty: 1 });
+            setNewRule({ price_item_id: '', vehicle_type_id: '', price: '', unit: 'PER_AD', free_image_count: 0, min_qty: 1 });
         } catch (error) {
-            alert(error.response?.data?.error || 'Error creating rule');
+            alert(error.response?.data?.error || 'Error saving rule');
         }
+    };
+
+    const handleEditRule = (rule) => {
+        setNewRule({
+            price_item_id: rule.price_item_id,
+            vehicle_type_id: rule.vehicle_type_id || '',
+            price: rule.price,
+            unit: rule.unit,
+            free_image_count: rule.free_image_count || 0,
+            min_qty: rule.min_qty || 1
+        });
+        setEditingRuleId(rule.id);
+        setIsRuleModalOpen(true);
     };
 
     const handleDeleteItem = async (id) => {
@@ -94,28 +141,103 @@ export default function PricingPage() {
         <div>
             <div className="mb-8">
                 <h1 className="text-2xl font-bold text-gray-800 mb-2">Packages & Pricing</h1>
-                <p className="text-gray-500">Manage your application's pricing packages, rules, and add-ons.</p>
+                <p className="text-gray-500">Manage advertisement prices, packages, and rules.</p>
             </div>
 
             {/* Tabs */}
             <div className="flex gap-4 mb-6 border-b border-gray-200">
                 <button
+                    onClick={() => setActiveTab('ads')}
+                    className={`pb-3 px-1 font-semibold text-sm transition-colors relative ${activeTab === 'ads' ? 'text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    Advertisement Prices
+                    {activeTab === 'ads' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full" />}
+                </button>
+                <button
                     onClick={() => setActiveTab('items')}
-                    className={`pb-3 px-1 font-semibold text-sm transition-colors relative ${activeTab === 'items' ? 'text-primary' : 'text-gray-500 hover:text-gray-700'
-                        }`}
+                    className={`pb-3 px-1 font-semibold text-sm transition-colors relative ${activeTab === 'items' ? 'text-primary' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                     Price Items
                     {activeTab === 'items' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full" />}
                 </button>
                 <button
                     onClick={() => setActiveTab('rules')}
-                    className={`pb-3 px-1 font-semibold text-sm transition-colors relative ${activeTab === 'rules' ? 'text-primary' : 'text-gray-500 hover:text-gray-700'
-                        }`}
+                    className={`pb-3 px-1 font-semibold text-sm transition-colors relative ${activeTab === 'rules' ? 'text-primary' : 'text-gray-500 hover:text-gray-700'}`}
                 >
-                    Pricing Rules
+                    All Rules
                     {activeTab === 'rules' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full" />}
                 </button>
             </div>
+
+            {/* Content for Advertisement Prices */}
+            {activeTab === 'ads' && (
+                <div className="space-y-4">
+                    <div className="flex justify-end">
+                        <button
+                            onClick={() => {
+                                // Reset rule and open modal
+                                setNewRule({ price_item_id: '', vehicle_type_id: '', price: '', unit: 'PER_AD', free_image_count: 0, min_qty: 1 });
+                                setEditingRuleId(null);
+                                setIsRuleModalOpen(true);
+                            }}
+                            className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all shadow-sm"
+                        >
+                            <Plus size={18} /> Create Add Price
+                        </button>
+                    </div>
+
+                    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                        <table className="w-full text-left">
+                            <thead className="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Vehicle Type</th>
+                                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Price (Per Ad)</th>
+                                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Free Images</th>
+                                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {rules
+                                    .filter(r => r.unit === 'PER_AD') // Only show Per Ad rules here
+                                    .map((rule) => (
+                                        <tr key={rule.id} className="hover:bg-gray-50/50">
+                                            <td className="px-6 py-4 font-medium text-gray-900">
+                                                {rule.vehicle_types?.type_name || <span className="text-gray-400 italic">All Types</span>}
+                                            </td>
+                                            <td className="px-6 py-4 text-green-600 font-bold font-mono">${rule.price}</td>
+                                            <td className="px-6 py-4">
+                                                <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
+                                                    {rule.free_image_count || 0} Images
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => handleEditRule(rule)}
+                                                        className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                                    >
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteRule(rule.id)}
+                                                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                            </tbody>
+                        </table>
+                        {rules.filter(r => r.unit === 'PER_AD').length === 0 && (
+                            <div className="p-8 text-center text-gray-400">
+                                No advertisement prices configured. Click "Create Add Price" to start.
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Content for Price Items */}
             {activeTab === 'items' && (
@@ -173,12 +295,16 @@ export default function PricingPage() {
                 </div>
             )}
 
-            {/* Content for Pricing Rules */}
+            {/* Content for All Pricing Rules */}
             {activeTab === 'rules' && (
                 <div className="space-y-4">
                     <div className="flex justify-end">
                         <button
-                            onClick={() => setIsRuleModalOpen(true)}
+                            onClick={() => {
+                                setNewRule({ price_item_id: '', vehicle_type_id: '', price: '', unit: 'PER_AD', free_image_count: 0, min_qty: 1 });
+                                setEditingRuleId(null);
+                                setIsRuleModalOpen(true);
+                            }}
                             className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all shadow-sm"
                         >
                             <Plus size={18} /> Add Pricing Rule
@@ -206,12 +332,20 @@ export default function PricingPage() {
                                             <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-semibold">{rule.unit}</span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <button
-                                                onClick={() => handleDeleteRule(rule.id)}
-                                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleEditRule(rule)}
+                                                    className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteRule(rule.id)}
+                                                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -270,24 +404,40 @@ export default function PricingPage() {
             {isRuleModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-                        <h2 className="text-xl font-bold mb-4">Add Pricing Rule</h2>
+                        <h2 className="text-xl font-bold mb-4">
+                            {editingRuleId
+                                ? 'Edit Pricing Rule'
+                                : (activeTab === 'ads' ? 'Create Advertisement Price' : 'Add Pricing Rule')
+                            }
+                        </h2>
                         <div className="space-y-4">
+                            {/* If in Ads tab, hide Item Selection and force AD item or auto-select */}
+                            {activeTab !== 'ads' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Price Item</label>
+                                    <select className="w-full border rounded-lg p-2" value={newRule.price_item_id} onChange={e => setNewRule({ ...newRule, price_item_id: e.target.value })}>
+                                        <option value="">Select Item...</option>
+                                        {items.map(i => <option key={i.id} value={i.id}>{i.name} ({i.code})</option>)}
+                                    </select>
+                                </div>
+                            )}
+
+                            {/* Vehicle Type Selection - Always show */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Price Item</label>
-                                <select className="w-full border rounded-lg p-2" value={newRule.price_item_id} onChange={e => setNewRule({ ...newRule, price_item_id: e.target.value })}>
-                                    <option value="">Select Item...</option>
-                                    {items.map(i => <option key={i.id} value={i.id}>{i.name} ({i.code})</option>)}
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Type</label>
+                                <select
+                                    className="w-full border rounded-lg p-2"
+                                    value={newRule.vehicle_type_id || ''}
+                                    onChange={e => setNewRule({ ...newRule, vehicle_type_id: e.target.value || null })}
+                                >
+                                    <option value="">All Types (Default)</option>
+                                    {vehicleTypes.map(type => (
+                                        <option key={type.id} value={type.id}>
+                                            {type.type_name}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
-
-                            {/* Note: Vehicle Types should technically be fetched too, simplified for now to generic or hardcoded if vehicle types API existed. Assuming null is allowed for All Types */}
-                            {/* <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Type (Optional)</label>
-                                <select className="w-full border rounded-lg p-2" value={newRule.vehicle_type_id || ''} onChange={e => setNewRule({...newRule, vehicle_type_id: e.target.value || null})}>
-                                    <option value="">All Types</option>
-                                     Add vehicle types mapping here if available 
-                                </select>
-                            </div> */}
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
@@ -297,19 +447,43 @@ export default function PricingPage() {
                                         <input type="number" className="w-full border rounded-lg pl-6 p-2" value={newRule.price} onChange={e => setNewRule({ ...newRule, price: e.target.value })} />
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
-                                    <select className="w-full border rounded-lg p-2" value={newRule.unit} onChange={e => setNewRule({ ...newRule, unit: e.target.value })}>
-                                        <option value="PER_AD">Per Ad</option>
-                                        <option value="PER_IMAGE">Per Image</option>
-                                        <option value="PER_DAY">Per Day</option>
-                                        <option value="ONE_TIME">One Time</option>
-                                    </select>
-                                </div>
+
+                                {activeTab === 'ads' ? (
+                                    // Hidden Unit Input for Ads (Fixed to PER_AD)
+                                    <input type="hidden" value="PER_AD" />
+                                ) : (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                                        <select className="w-full border rounded-lg p-2" value={newRule.unit} onChange={e => setNewRule({ ...newRule, unit: e.target.value })}>
+                                            <option value="PER_AD">Per Ad</option>
+                                            <option value="PER_IMAGE">Per Image</option>
+                                            <option value="PER_DAY">Per Day</option>
+                                            <option value="ONE_TIME">One Time</option>
+                                        </select>
+                                    </div>
+                                )}
                             </div>
+
+                            {/* Free Image Count - Only relevant for Ads or if we want it generally available */}
+                            {activeTab === 'ads' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Free Images Included</label>
+                                    <input
+                                        type="number"
+                                        className="w-full border rounded-lg p-2"
+                                        value={newRule.free_image_count}
+                                        onChange={e => setNewRule({ ...newRule, free_image_count: parseInt(e.target.value) || 0 })}
+                                        min="0"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">Number of images user can upload for free with this ad price.</p>
+                                </div>
+                            )}
+
                             <div className="flex gap-3 justify-end mt-4">
                                 <button onClick={() => setIsRuleModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Cancel</button>
-                                <button onClick={handleCreateRule} className="px-4 py-2 bg-primary text-white rounded-lg">Create Rule</button>
+                                <button onClick={handleSaveRule} className="px-4 py-2 bg-primary text-white rounded-lg">
+                                    {editingRuleId ? 'Update Rule' : (activeTab === 'ads' ? 'Set Price' : 'Create Rule')}
+                                </button>
                             </div>
                         </div>
                     </div>
