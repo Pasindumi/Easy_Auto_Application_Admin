@@ -75,6 +75,7 @@ export const pricingApi = {
     // Rules
     getRules: () => api.get('/pricing/rules'),
     createRule: (data) => api.post('/pricing/rules', data),
+    updateRule: (id, data) => api.put(`/pricing/rules/${id}`, data),
     deleteRule: (id) => api.delete(`/pricing/rules/${id}`),
 
     // Features
@@ -86,6 +87,11 @@ export const pricingApi = {
     getPackageItems: (packageId) => api.get(`/pricing/package-items/${packageId}`),
     addPackageItem: (data) => api.post('/pricing/package-items', data),
     deletePackageItem: (id) => api.delete(`/pricing/package-items/${id}`),
+
+    // Package Ad Limits
+    getPackageAdLimits: (packageId) => api.get(`/pricing/package-limits/${packageId}`),
+    addPackageAdLimit: (data) => api.post('/pricing/package-limits', data),
+    deletePackageAdLimit: (id) => api.delete(`/pricing/package-limits/${id}`),
 };
 
 // Discounts API

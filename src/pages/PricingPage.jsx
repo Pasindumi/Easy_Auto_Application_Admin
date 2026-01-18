@@ -18,7 +18,7 @@ export default function PricingPage() {
     // Selection States
     const [selectedItem, setSelectedItem] = useState(null); // For editing or adding features
     const [newItem, setNewItem] = useState({ code: '', name: '', item_type: 'AD', description: '', status: 'ACTIVE' });
-    const [newRule, setNewRule] = useState({ price_item_id: '', vehicle_type_id: '', price: '', unit: 'PER_AD', free_image_count: 0, min_qty: 1 });
+    const [newRule, setNewRule] = useState({ price_item_id: '', vehicle_type_id: '', price: '', unit: 'PER_AD', free_image_count: 0, description_limit: 500, min_qty: 1 });
 
     const [editingRuleId, setEditingRuleId] = useState(null);
 
@@ -84,6 +84,11 @@ export default function PricingPage() {
                 }
             }
 
+            // Sanitization: Convert empty strings to null for UUID fields
+            if (ruleToSubmit.vehicle_type_id === '') ruleToSubmit.vehicle_type_id = null;
+            if (ruleToSubmit.price === '') ruleToSubmit.price = 0; // Or validation error?
+
+
             if (editingRuleId) {
                 await pricingApi.updateRule(editingRuleId, ruleToSubmit);
             } else {
@@ -93,7 +98,7 @@ export default function PricingPage() {
             setIsRuleModalOpen(false);
             setEditingRuleId(null);
             fetchData();
-            setNewRule({ price_item_id: '', vehicle_type_id: '', price: '', unit: 'PER_AD', free_image_count: 0, min_qty: 1 });
+            setNewRule({ price_item_id: '', vehicle_type_id: '', price: '', unit: 'PER_AD', free_image_count: 0, description_limit: 500, min_qty: 1 });
         } catch (error) {
             alert(error.response?.data?.error || 'Error saving rule');
         }
@@ -106,6 +111,9 @@ export default function PricingPage() {
             price: rule.price,
             unit: rule.unit,
             free_image_count: rule.free_image_count || 0,
+            unit: rule.unit,
+            free_image_count: rule.free_image_count || 0,
+            description_limit: rule.description_limit || 500,
             min_qty: rule.min_qty || 1
         });
         setEditingRuleId(rule.id);
@@ -176,7 +184,7 @@ export default function PricingPage() {
                         <button
                             onClick={() => {
                                 // Reset rule and open modal
-                                setNewRule({ price_item_id: '', vehicle_type_id: '', price: '', unit: 'PER_AD', free_image_count: 0, min_qty: 1 });
+                                setNewRule({ price_item_id: '', vehicle_type_id: '', price: '', unit: 'PER_AD', free_image_count: 0, description_limit: 500, min_qty: 1 });
                                 setEditingRuleId(null);
                                 setIsRuleModalOpen(true);
                             }}
@@ -193,6 +201,7 @@ export default function PricingPage() {
                                     <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Vehicle Type</th>
                                     <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Price (Per Ad)</th>
                                     <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Free Images</th>
+                                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Letter Limit</th>
                                     <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
                                 </tr>
                             </thead>
@@ -208,6 +217,11 @@ export default function PricingPage() {
                                             <td className="px-6 py-4">
                                                 <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
                                                     {rule.free_image_count || 0} Images
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className="text-gray-600 text-sm">
+                                                    {rule.description_limit || 500} chars
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
@@ -301,7 +315,7 @@ export default function PricingPage() {
                     <div className="flex justify-end">
                         <button
                             onClick={() => {
-                                setNewRule({ price_item_id: '', vehicle_type_id: '', price: '', unit: 'PER_AD', free_image_count: 0, min_qty: 1 });
+                                setNewRule({ price_item_id: '', vehicle_type_id: '', price: '', unit: 'PER_AD', free_image_count: 0, description_limit: 500, min_qty: 1 });
                                 setEditingRuleId(null);
                                 setIsRuleModalOpen(true);
                             }}
@@ -476,6 +490,21 @@ export default function PricingPage() {
                                         min="0"
                                     />
                                     <p className="text-xs text-gray-500 mt-1">Number of images user can upload for free with this ad price.</p>
+                                </div>
+                            )}
+
+                            {/* Description Limit */}
+                            {activeTab === 'ads' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description Letter Limit</label>
+                                    <input
+                                        type="number"
+                                        className="w-full border rounded-lg p-2"
+                                        value={newRule.description_limit}
+                                        onChange={e => setNewRule({ ...newRule, description_limit: parseInt(e.target.value) || 0 })}
+                                        min="0"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">Maximum characters allowed for description. Extra letters may cost more (logic TBD).</p>
                                 </div>
                             )}
 
