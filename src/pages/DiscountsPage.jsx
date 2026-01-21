@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Percent, DollarSign, Calendar, CheckCircle, XCircle, Users, Layers, Info } from 'lucide-react';
-import { discountsApi, configApi } from '../api';
+import { Plus, Trash2, Edit2, Percent, DollarSign, Calendar, CheckCircle, XCircle, Users, Layers, Info, Package } from 'lucide-react';
+import { discountsApi, configApi, pricingApi } from '../api';
 
 export default function DiscountsPage() {
     const [discounts, setDiscounts] = useState([]);
     const [vehicleTypes, setVehicleTypes] = useState([]);
+    const [packages, setPackages] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
@@ -18,12 +19,14 @@ export default function DiscountsPage() {
         start_date: '',
         end_date: '',
         status: 'ACTIVE',
-        vehicle_type_ids: []
+        vehicle_type_ids: [],
+        package_ids: []
     });
 
     useEffect(() => {
         fetchDiscounts();
         fetchVehicleTypes();
+        fetchPackages();
     }, []);
 
     const fetchDiscounts = async () => {
@@ -47,6 +50,17 @@ export default function DiscountsPage() {
         }
     };
 
+    const fetchPackages = async () => {
+        try {
+            const res = await pricingApi.getItems();
+            // Filter only PACKAGES
+            const pkgs = res.data.filter(item => item.item_type === 'PACKAGE');
+            setPackages(pkgs);
+        } catch (error) {
+            console.error("Failed to load packages", error);
+        }
+    };
+
     const handleOpenModal = (discount = null) => {
         if (discount) {
             setEditingId(discount.id);
@@ -59,7 +73,8 @@ export default function DiscountsPage() {
                 start_date: discount.start_date ? discount.start_date.split('T')[0] : '',
                 end_date: discount.end_date ? discount.end_date.split('T')[0] : '',
                 status: discount.status,
-                vehicle_type_ids: discount.discount_vehicle_types?.map(v => v.vehicle_type_id) || []
+                vehicle_type_ids: discount.discount_vehicle_types?.map(v => v.vehicle_type_id) || [],
+                package_ids: discount.discount_packages?.map(p => p.package_id) || []
             });
         } else {
             setEditingId(null);
@@ -72,7 +87,8 @@ export default function DiscountsPage() {
                 start_date: '',
                 end_date: '',
                 status: 'ACTIVE',
-                vehicle_type_ids: []
+                vehicle_type_ids: [],
+                package_ids: []
             });
         }
         setIsModalOpen(true);
@@ -112,6 +128,15 @@ export default function DiscountsPage() {
         }));
     };
 
+    const togglePackage = (id) => {
+        setFormData(prev => ({
+            ...prev,
+            package_ids: prev.package_ids.includes(id)
+                ? prev.package_ids.filter(p => p !== id)
+                : [...prev.package_ids, id]
+        }));
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -138,7 +163,8 @@ export default function DiscountsPage() {
                             <tr>
                                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Discount Name</th>
                                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Details</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Categories</th>
+                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Target Categories</th>
+                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Target Packages</th>
                                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Conditions</th>
                                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
                                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase text-right">Actions</th>
@@ -167,6 +193,19 @@ export default function DiscountsPage() {
                                                 ))
                                             ) : (
                                                 <span className="text-gray-400 text-xs italic">All Categories</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex flex-wrap gap-1">
+                                            {discount.discount_packages?.length > 0 ? (
+                                                discount.discount_packages.map(p => (
+                                                    <span key={p.package_id} className="bg-purple-50 text-purple-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase">
+                                                        {p.price_items?.name}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span className="text-gray-400 text-xs italic">All/None</span>
                                             )}
                                         </div>
                                     </td>
@@ -272,28 +311,54 @@ export default function DiscountsPage() {
                                 </div>
                             </div>
 
-                            {/* Categories */}
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                                    <Layers size={16} /> Target Categories (Optional)
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                    {vehicleTypes.map(type => (
-                                        <button
-                                            key={type.id}
-                                            type="button"
-                                            onClick={() => toggleVehicleType(type.id)}
-                                            className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${formData.vehicle_type_ids.includes(type.id)
-                                                ? 'bg-primary border-primary text-white'
-                                                : 'bg-white border-gray-200 text-gray-600 hover:border-primary/50'
-                                                }`}
-                                        >
-                                            {type.type_name}
-                                        </button>
-                                    ))}
-                                    {vehicleTypes.length === 0 && <p className="text-xs text-gray-400 italic">No categories loaded.</p>}
+                            <div className="flex gap-4">
+                                {/* Categories */}
+                                <div className="flex-1">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                        <Layers size={16} /> Target Categories
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {vehicleTypes.map(type => (
+                                            <button
+                                                key={type.id}
+                                                type="button"
+                                                onClick={() => toggleVehicleType(type.id)}
+                                                className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${formData.vehicle_type_ids.includes(type.id)
+                                                    ? 'bg-primary border-primary text-white'
+                                                    : 'bg-white border-gray-200 text-gray-600 hover:border-primary/50'
+                                                    }`}
+                                            >
+                                                {type.type_name}
+                                            </button>
+                                        ))}
+                                        {vehicleTypes.length === 0 && <p className="text-xs text-gray-400 italic">No categories loaded.</p>}
+                                    </div>
+                                    <p className="text-[11px] text-gray-400 mt-2 italic">Select categories for ad posting discounts.</p>
                                 </div>
-                                <p className="text-[11px] text-gray-400 mt-2 italic">Select specific categories or leave empty for all.</p>
+
+                                {/* Packages */}
+                                <div className="flex-1">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                        <Package size={16} /> Target Packages
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {packages.map(pkg => (
+                                            <button
+                                                key={pkg.id}
+                                                type="button"
+                                                onClick={() => togglePackage(pkg.id)}
+                                                className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${formData.package_ids.includes(pkg.id)
+                                                    ? 'bg-purple-600 border-purple-600 text-white'
+                                                    : 'bg-white border-gray-200 text-gray-600 hover:border-purple-600/50'
+                                                    }`}
+                                            >
+                                                {pkg.name}
+                                            </button>
+                                        ))}
+                                        {packages.length === 0 && <p className="text-xs text-gray-400 italic">No packages loaded.</p>}
+                                    </div>
+                                    <p className="text-[11px] text-gray-400 mt-2 italic">Select packages for subcription discounts.</p>
+                                </div>
                             </div>
 
                             {/* Conditions */}
