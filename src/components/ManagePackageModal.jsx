@@ -13,7 +13,11 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
         duration: '',
         color: '#000000',
         imageUrl: '',
-        description: ''
+        description: '',
+        imageLimit: '5',
+        descriptionLimit: '500',
+        isImageUnlimited: false,
+        isDescriptionUnlimited: false
     });
 
     // Lists
@@ -55,8 +59,19 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
             const color = featRes.data.find(f => f.feature_key === 'COLOR_THEME')?.feature_value || '#000000';
             const imageUrl = featRes.data.find(f => f.feature_key === 'PACKAGE_IMAGE')?.feature_value || '';
             const desc = featRes.data.find(f => f.feature_key === 'DESCRIPTION')?.feature_value || '';
+            const imgLimit = featRes.data.find(f => f.feature_key === 'IMAGE_LIMIT')?.feature_value || '5';
+            const descLimit = featRes.data.find(f => f.feature_key === 'DESCRIPTION_LIMIT')?.feature_value || '500';
 
-            setConfig({ duration, color, imageUrl, description: desc });
+            setConfig({
+                duration,
+                color,
+                imageUrl,
+                description: desc,
+                imageLimit: imgLimit === 'UNLIMITED' ? '' : imgLimit,
+                descriptionLimit: descLimit === 'UNLIMITED' ? '' : descLimit,
+                isImageUnlimited: imgLimit === 'UNLIMITED',
+                isDescriptionUnlimited: descLimit === 'UNLIMITED'
+            });
 
             // Fetch Included Items
             const itemsRes = await pricingApi.getPackageItems(packageItem.id);
@@ -111,7 +126,9 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
                 saveConfigValue('DURATION_DAYS', config.duration, 'Validity in days'),
                 saveConfigValue('COLOR_THEME', config.color, 'Card color theme'),
                 saveConfigValue('PACKAGE_IMAGE', config.imageUrl, 'Card display image'),
-                saveConfigValue('DESCRIPTION', config.description, 'Package description text')
+                saveConfigValue('DESCRIPTION', config.description, 'Package description text'),
+                saveConfigValue('IMAGE_LIMIT', config.isImageUnlimited ? 'UNLIMITED' : config.imageLimit, 'Max images allowed per ad'),
+                saveConfigValue('DESCRIPTION_LIMIT', config.isDescriptionUnlimited ? 'UNLIMITED' : config.descriptionLimit, 'Max characters in description')
             ]);
             await fetchData();
             alert('Configuration saved!');
@@ -277,6 +294,50 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
                                         placeholder="Detailed description of the package..."
                                         value={config.description}
                                         onChange={e => setConfig({ ...config, description: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <div className="flex justify-between items-center mb-1">
+                                        <label className="block text-sm font-medium text-gray-700">Image Limit</label>
+                                        <label className="flex items-center gap-1.5 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                className="w-3.5 h-3.5 rounded text-primary"
+                                                checked={config.isImageUnlimited}
+                                                onChange={e => setConfig({ ...config, isImageUnlimited: e.target.checked })}
+                                            />
+                                            <span className="text-xs font-semibold text-gray-500">Unlimited</span>
+                                        </label>
+                                    </div>
+                                    <input
+                                        type="number"
+                                        className="w-full border rounded-lg p-2 disabled:bg-gray-50 disabled:text-gray-400"
+                                        placeholder={config.isImageUnlimited ? 'Unlimited' : 'e.g. 10'}
+                                        disabled={config.isImageUnlimited}
+                                        value={config.isImageUnlimited ? '' : config.imageLimit}
+                                        onChange={e => setConfig({ ...config, imageLimit: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <div className="flex justify-between items-center mb-1">
+                                        <label className="block text-sm font-medium text-gray-700">Description Limit</label>
+                                        <label className="flex items-center gap-1.5 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                className="w-3.5 h-3.5 rounded text-primary"
+                                                checked={config.isDescriptionUnlimited}
+                                                onChange={e => setConfig({ ...config, isDescriptionUnlimited: e.target.checked })}
+                                            />
+                                            <span className="text-xs font-semibold text-gray-500">Unlimited</span>
+                                        </label>
+                                    </div>
+                                    <input
+                                        type="number"
+                                        className="w-full border rounded-lg p-2 disabled:bg-gray-50 disabled:text-gray-400"
+                                        placeholder={config.isDescriptionUnlimited ? 'Unlimited' : 'e.g. 1000'}
+                                        disabled={config.isDescriptionUnlimited}
+                                        value={config.isDescriptionUnlimited ? '' : config.descriptionLimit}
+                                        onChange={e => setConfig({ ...config, descriptionLimit: e.target.value })}
                                     />
                                 </div>
                             </div>

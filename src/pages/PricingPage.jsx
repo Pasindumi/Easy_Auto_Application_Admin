@@ -18,6 +18,7 @@ export default function PricingPage() {
     // Selection States
     const [selectedItem, setSelectedItem] = useState(null); // For editing or adding features
     const [newItem, setNewItem] = useState({ code: '', name: '', item_type: 'AD', description: '', status: 'ACTIVE' });
+    const [editingItemId, setEditingItemId] = useState(null);
     const [newRule, setNewRule] = useState({ price_item_id: '', vehicle_type_id: '', price: '', unit: 'PER_AD', free_image_count: 0, description_limit: 500, min_qty: 1 });
 
     const [editingRuleId, setEditingRuleId] = useState(null);
@@ -56,15 +57,32 @@ export default function PricingPage() {
         }
     };
 
-    const handleCreateItem = async () => {
+    const handleSaveItem = async () => {
         try {
-            await pricingApi.createItem(newItem);
+            if (editingItemId) {
+                await pricingApi.updateItem(editingItemId, newItem);
+            } else {
+                await pricingApi.createItem(newItem);
+            }
             setIsItemModalOpen(false);
+            setEditingItemId(null);
             fetchData();
             setNewItem({ code: '', name: '', item_type: 'AD', description: '', status: 'ACTIVE' });
         } catch (error) {
-            alert(error.response?.data?.error || 'Error creating item');
+            alert(error.response?.data?.error || 'Error saving item');
         }
+    };
+
+    const handleEditItem = (item) => {
+        setNewItem({
+            code: item.code,
+            name: item.name,
+            item_type: item.item_type,
+            description: item.description || '',
+            status: item.status
+        });
+        setEditingItemId(item.id);
+        setIsItemModalOpen(true);
     };
 
     const handleSaveRule = async () => {
@@ -88,7 +106,6 @@ export default function PricingPage() {
             if (ruleToSubmit.vehicle_type_id === '') ruleToSubmit.vehicle_type_id = null;
             if (ruleToSubmit.price === '') ruleToSubmit.price = 0; // Or validation error?
 
-
             if (editingRuleId) {
                 await pricingApi.updateRule(editingRuleId, ruleToSubmit);
             } else {
@@ -109,8 +126,6 @@ export default function PricingPage() {
             price_item_id: rule.price_item_id,
             vehicle_type_id: rule.vehicle_type_id || '',
             price: rule.price,
-            unit: rule.unit,
-            free_image_count: rule.free_image_count || 0,
             unit: rule.unit,
             free_image_count: rule.free_image_count || 0,
             description_limit: rule.description_limit || 500,
@@ -216,12 +231,12 @@ export default function PricingPage() {
                                             <td className="px-6 py-4 text-green-600 font-bold font-mono">${rule.price}</td>
                                             <td className="px-6 py-4">
                                                 <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
-                                                    {rule.free_image_count || 0} Images
+                                                    {(rule.free_image_count >= 100) ? 'Unlimited' : `${rule.free_image_count || 0} Images`}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className="text-gray-600 text-sm">
-                                                    {rule.description_limit || 500} chars
+                                                    {(rule.description_limit >= 10000) ? 'Unlimited' : `${rule.description_limit || 500} chars`}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
@@ -258,7 +273,11 @@ export default function PricingPage() {
                 <div className="space-y-4">
                     <div className="flex justify-end">
                         <button
-                            onClick={() => setIsItemModalOpen(true)}
+                            onClick={() => {
+                                setNewItem({ code: '', name: '', item_type: 'AD', description: '', status: 'ACTIVE' });
+                                setEditingItemId(null);
+                                setIsItemModalOpen(true);
+                            }}
                             className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all shadow-sm"
                         >
                             <Plus size={18} /> Add Price Item
@@ -273,6 +292,12 @@ export default function PricingPage() {
                                         {item.item_type === 'PACKAGE' ? <Package size={24} /> : <Tag size={24} />}
                                     </div>
                                     <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleEditItem(item)}
+                                            className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                        >
+                                            <Edit2 size={16} />
+                                        </button>
                                         <button
                                             onClick={() => handleDeleteItem(item.id)}
                                             className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -290,6 +315,9 @@ export default function PricingPage() {
                                         </span>
                                         <span className={`text-xs px-2 py-1 rounded font-semibold ${item.status === 'ACTIVE' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
                                             {item.status}
+                                        </span>
+                                        <span className="bg-orange-50 text-orange-600 text-xs px-2 py-1 rounded font-semibold border border-orange-100">
+                                            {item.item_type}
                                         </span>
                                     </div>
                                 </div>
@@ -374,7 +402,7 @@ export default function PricingPage() {
             {isItemModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-                        <h2 className="text-xl font-bold mb-4">Add Price Item</h2>
+                        <h2 className="text-xl font-bold mb-4">{editingItemId ? 'Edit Price Item' : 'Add Price Item'}</h2>
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
@@ -408,7 +436,7 @@ export default function PricingPage() {
                             </div>
                             <div className="flex gap-3 justify-end mt-4">
                                 <button onClick={() => setIsItemModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Cancel</button>
-                                <button onClick={handleCreateItem} className="px-4 py-2 bg-primary text-white rounded-lg">Create Item</button>
+                                <button onClick={handleSaveItem} className="px-4 py-2 bg-primary text-white rounded-lg">{editingItemId ? 'Update Item' : 'Create Item'}</button>
                             </div>
                         </div>
                     </div>
@@ -481,13 +509,26 @@ export default function PricingPage() {
                             {/* Free Image Count - Only relevant for Ads or if we want it generally available */}
                             {activeTab === 'ads' && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Free Images Included</label>
+                                    <div className="flex justify-between items-center mb-1">
+                                        <label className="block text-sm font-medium text-gray-700">Free Images Included</label>
+                                        <label className="flex items-center gap-1.5 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                className="w-3.5 h-3.5 rounded text-primary"
+                                                checked={newRule.free_image_count >= 100}
+                                                onChange={e => setNewRule({ ...newRule, free_image_count: e.target.checked ? 100 : 0 })}
+                                            />
+                                            <span className="text-xs font-semibold text-gray-500">Unlimited</span>
+                                        </label>
+                                    </div>
                                     <input
                                         type="number"
-                                        className="w-full border rounded-lg p-2"
-                                        value={newRule.free_image_count}
+                                        className="w-full border rounded-lg p-2 disabled:bg-gray-50 disabled:text-gray-400"
+                                        value={newRule.free_image_count >= 100 ? '' : newRule.free_image_count}
                                         onChange={e => setNewRule({ ...newRule, free_image_count: parseInt(e.target.value) || 0 })}
                                         min="0"
+                                        disabled={newRule.free_image_count >= 100}
+                                        placeholder={newRule.free_image_count >= 100 ? 'Unlimited' : 'e.g. 10'}
                                     />
                                     <p className="text-xs text-gray-500 mt-1">Number of images user can upload for free with this ad price.</p>
                                 </div>
@@ -496,15 +537,28 @@ export default function PricingPage() {
                             {/* Description Limit */}
                             {activeTab === 'ads' && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description Letter Limit</label>
+                                    <div className="flex justify-between items-center mb-1">
+                                        <label className="block text-sm font-medium text-gray-700">Description Letter Limit</label>
+                                        <label className="flex items-center gap-1.5 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                className="w-3.5 h-3.5 rounded text-primary"
+                                                checked={newRule.description_limit >= 10000}
+                                                onChange={e => setNewRule({ ...newRule, description_limit: e.target.checked ? 100000 : 500 })}
+                                            />
+                                            <span className="text-xs font-semibold text-gray-500">Unlimited</span>
+                                        </label>
+                                    </div>
                                     <input
                                         type="number"
-                                        className="w-full border rounded-lg p-2"
-                                        value={newRule.description_limit}
+                                        className="w-full border rounded-lg p-2 disabled:bg-gray-50 disabled:text-gray-400"
+                                        value={newRule.description_limit >= 10000 ? '' : newRule.description_limit}
                                         onChange={e => setNewRule({ ...newRule, description_limit: parseInt(e.target.value) || 0 })}
                                         min="0"
+                                        disabled={newRule.description_limit >= 10000}
+                                        placeholder={newRule.description_limit >= 10000 ? 'Unlimited' : 'e.g. 1000'}
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">Maximum characters allowed for description. Extra letters may cost more (logic TBD).</p>
+                                    <p className="text-xs text-gray-500 mt-1">Maximum characters allowed for description. Extra letters may cost more.</p>
                                 </div>
                             )}
 
