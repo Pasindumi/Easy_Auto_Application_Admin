@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Lock, Mail, Loader2, AlertCircle, Shield } from 'lucide-react';
+import { Lock, Mail, Loader2, AlertCircle, Shield, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 
 export default function Login() {
@@ -9,6 +9,7 @@ export default function Login() {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
 
@@ -35,8 +36,8 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center p-4 font-sans">
-            <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-white/50">
+        <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center p-4 font-sans animate-fade-in">
+            <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden border border-white/50 animate-scale-in">
                 {/* Header */}
                 <div className="bg-primary p-8 text-center relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-full bg-white/5 opacity-30 pattern-grid-lg"></div>
@@ -50,7 +51,7 @@ export default function Login() {
                 {/* Form */}
                 <div className="p-8">
                     {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3">
+                        <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 animate-shake">
                             <AlertCircle className="text-red-500 w-5 h-5 shrink-0" />
                             <p className="text-sm text-red-600 font-medium pt-0.5">{error}</p>
                         </div>
@@ -77,20 +78,27 @@ export default function Login() {
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     required
-                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
+                                    className="w-full pl-10 pr-12 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-smooth text-gray-800"
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-smooth p-1"
+                                >
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
                             </div>
                         </div>
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 px-4 bg-primary hover:bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transition-all transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full py-3 px-4 bg-primary hover:bg-blue-600 text-white font-bold rounded-xl shadow-primary transition-smooth transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>

@@ -34,19 +34,29 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
             to={item.path}
             className={({ isActive }) =>
                 clsx(
-                    "group flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 mb-1.5",
+                    "group flex items-center justify-between px-4 py-3 rounded-xl transition-smooth mb-1.5",
                     isActive
-                        ? "bg-primary text-white shadow-lg shadow-blue-500/30 font-semibold"
+                        ? "bg-primary text-white shadow-primary font-semibold"
                         : "text-gray-500 hover:bg-blue-50 hover:text-primary font-medium"
                 )
             }
             onClick={() => setMobileOpen(false)}
         >
-            <div className="flex items-center gap-3">
-                <item.icon size={20} className={clsx("transition-colors", ({ isActive }) => isActive ? "text-white" : "text-gray-400 group-hover:text-primary")} />
-                <span>{item.name}</span>
-            </div>
-            {/* <ChevronRight size={16} className={clsx("opacity-0 group-hover:opacity-100 transition-opacity", ({isActive}) => isActive ? "text-white opacity-100" : "text-primary")} /> */}
+            {({ isActive }) => (
+                <>
+                    <div className="flex items-center gap-3">
+                        <item.icon size={20} className={clsx("transition-smooth", isActive ? "text-white" : "text-gray-400 group-hover:text-primary")} />
+                        <span>{item.name}</span>
+                    </div>
+                    <ChevronRight 
+                        size={16} 
+                        className={clsx(
+                            "opacity-0 group-hover:opacity-100 transition-smooth transform group-hover:translate-x-1", 
+                            isActive ? "text-white opacity-100" : "text-primary"
+                        )} 
+                    />
+                </>
+            )}
         </NavLink>
     );
 
@@ -55,7 +65,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
             {/* Mobile Overlay */}
             {mobileOpen && (
                 <div
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden animate-fade-in"
                     onClick={() => setMobileOpen(false)}
                 />
             )}
@@ -63,7 +73,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
             {/* Sidebar */}
             <aside
                 className={clsx(
-                    "fixed top-0 left-0 z-50 h-screen w-72 bg-white border-r border-gray-100 transition-transform duration-300 ease-out md:translate-x-0 shadow-2xl shadow-gray-200/50 flex flex-col",
+                    "fixed top-0 left-0 z-50 h-screen w-72 bg-white border-r border-gray-100 transition-all duration-300 ease-out md:translate-x-0 shadow-2xl shadow-gray-200/50 flex flex-col",
                     mobileOpen ? "translate-x-0" : "-translate-x-full"
                 )}
             >
