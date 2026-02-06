@@ -20,7 +20,9 @@ export default function DiscountsPage() {
         end_date: '',
         status: 'ACTIVE',
         vehicle_type_ids: [],
-        package_ids: []
+        package_ids: [],
+        color_theme: '#235CF8',
+        offer_image: null
     });
 
     useEffect(() => {
@@ -74,7 +76,9 @@ export default function DiscountsPage() {
                 end_date: discount.end_date ? discount.end_date.split('T')[0] : '',
                 status: discount.status,
                 vehicle_type_ids: discount.discount_vehicle_types?.map(v => v.vehicle_type_id) || [],
-                package_ids: discount.discount_packages?.map(p => p.package_id) || []
+                package_ids: discount.discount_packages?.map(p => p.package_id) || [],
+                color_theme: discount.color_theme || '#235CF8',
+                offer_image: null
             });
         } else {
             setEditingId(null);
@@ -88,7 +92,9 @@ export default function DiscountsPage() {
                 end_date: '',
                 status: 'ACTIVE',
                 vehicle_type_ids: [],
-                package_ids: []
+                package_ids: [],
+                color_theme: '#235CF8',
+                offer_image: null
             });
         }
         setIsModalOpen(true);
@@ -97,10 +103,22 @@ export default function DiscountsPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const data = new FormData();
+            Object.keys(formData).forEach(key => {
+                if (key === 'vehicle_type_ids' || key === 'package_ids') {
+                    // Send as JSON string for arrays
+                    data.append(key, JSON.stringify(formData[key]));
+                } else if (key === 'offer_image') {
+                    if (formData[key]) data.append('offer_image', formData[key]);
+                } else {
+                    data.append(key, formData[key]);
+                }
+            });
+
             if (editingId) {
-                await discountsApi.update(editingId, formData);
+                await discountsApi.update(editingId, data);
             } else {
-                await discountsApi.create(formData);
+                await discountsApi.create(data);
             }
             setIsModalOpen(false);
             fetchDiscounts();
@@ -165,8 +183,7 @@ export default function DiscountsPage() {
                                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Details</th>
                                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Target Categories</th>
                                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Target Packages</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Conditions</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
+                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Image/Theme</th>
                                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase text-right">Actions</th>
                             </tr>
                         </thead>
@@ -225,6 +242,14 @@ export default function DiscountsPage() {
                                                 <div className="flex items-center gap-1">
                                                     <Calendar size={12} /> From {new Date(discount.start_date).toLocaleDateString()}
                                                 </div>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-xs">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 rounded border border-gray-200" style={{ backgroundColor: discount.color_theme }}></div>
+                                            {discount.offer_image_url && (
+                                                <img src={discount.offer_image_url} alt="" className="w-8 h-8 rounded object-cover border border-gray-200" />
                                             )}
                                         </div>
                                     </td>
@@ -308,6 +333,33 @@ export default function DiscountsPage() {
                                             onChange={e => setFormData({ ...formData, value: e.target.value })}
                                         />
                                     </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Color Theme</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="color"
+                                            className="w-12 h-10 border border-gray-200 rounded-lg p-1 outline-none"
+                                            value={formData.color_theme}
+                                            onChange={e => setFormData({ ...formData, color_theme: e.target.value })}
+                                        />
+                                        <input
+                                            required
+                                            className="flex-1 border border-gray-200 rounded-lg p-2.5 outline-none font-mono"
+                                            placeholder="#235CF8"
+                                            value={formData.color_theme}
+                                            onChange={e => setFormData({ ...formData, color_theme: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Offer Image</label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none"
+                                        onChange={e => setFormData({ ...formData, offer_image: e.target.files[0] })}
+                                    />
                                 </div>
                             </div>
 

@@ -41,6 +41,7 @@ export const authApi = {
 // Dash API
 export const dashApi = {
     getStats: () => api.get('/admin/stats'),
+    getUsers: () => api.get('/admin/users'),
 };
 
 // Ads API
@@ -58,6 +59,7 @@ export const configApi = {
     getConditions: (typeId) => api.get(`/vehicle-config/conditions/${typeId}`),
 
     addBrand: (data) => api.post('/vehicle-config/brands', data),
+    updateBrand: (id, data) => api.put(`/vehicle-config/brands/${id}`, data),
     addAttribute: (data) => api.post('/vehicle-config/attributes', data),
     addModel: (data) => api.post('/vehicle-config/models', data),
     addCondition: (data) => api.post('/vehicle-config/conditions', data),
@@ -92,6 +94,10 @@ export const pricingApi = {
     getPackageAdLimits: (packageId) => api.get(`/pricing/package-limits/${packageId}`),
     addPackageAdLimit: (data) => api.post('/pricing/package-limits', data),
     deletePackageAdLimit: (id) => api.delete(`/pricing/package-limits/${id}`),
+
+    // Subscriptions
+    getSubscribers: () => api.get('/pricing/admin/subscribers'),
+    getSubscriberUsage: (userId, packageId) => api.get(`/pricing/admin/subscriber-usage/${userId}/${packageId}`),
 };
 
 // Discounts API
