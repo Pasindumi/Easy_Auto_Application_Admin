@@ -11,7 +11,8 @@ import {
     Tags,
     Sliders,
     Percent,
-    ChevronRight
+    ChevronRight,
+    Users
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import clsx from 'clsx';
@@ -23,6 +24,8 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
         { name: 'Sell Ads', path: '/ads', icon: Car },
         { name: 'Vehicle Types', path: '/vehicle-types', icon: Tags },
+        { name: 'Users', path: '/users', icon: Users },
+        { name: 'Users & Subscriptions', path: '/subscribers', icon: ShieldCheck },
         { name: 'Packages & Pricing', path: '/pricing', icon: Sliders },
         { name: 'Discounts & Offers', path: '/discounts', icon: Percent },
         { name: 'System Limits', path: '/settings/limits', icon: Settings },

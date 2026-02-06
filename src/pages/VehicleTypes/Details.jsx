@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { configApi } from '../../api';
-import { ArrowLeft, Trash2, Plus, Info } from 'lucide-react';
+import { ArrowLeft, Trash2, Plus, Info, Image as ImageIcon, X, Edit2 } from 'lucide-react';
 
 export default function VehicleTypeDetails() {
     const { id } = useParams();
@@ -15,6 +15,9 @@ export default function VehicleTypeDetails() {
 
     // Forms
     const [newBrand, setNewBrand] = useState('');
+    const [brandImage, setBrandImage] = useState(null);
+    const [brandImagePreview, setBrandImagePreview] = useState(null);
+    const [editingBrand, setEditingBrand] = useState(null); // { id, name, image }
     const [newAttr, setNewAttr] = useState({ name: '', dataType: 'TEXT', unit: '', required: false });
     const [newModel, setNewModel] = useState({ brand_id: '', model_name: '' });
     const [newCondition, setNewCondition] = useState('');
@@ -49,19 +52,53 @@ export default function VehicleTypeDetails() {
         fetchDetails();
     }, [id]);
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setBrandImage(file);
+            setBrandImagePreview(URL.createObjectURL(file));
+        }
+    };
+
     const addBrand = async () => {
         if (!newBrand) return;
         try {
-            await configApi.addBrand({
-                vehicle_type_id: id,
-                brand_name: newBrand
-            });
+            const formData = new FormData();
+            formData.append('vehicle_type_id', id);
+            formData.append('brand_name', newBrand);
+            if (brandImage) {
+                formData.append('brand_image', brandImage);
+            }
+
+            if (editingBrand) {
+                await configApi.updateBrand(editingBrand.id, formData);
+            } else {
+                await configApi.addBrand(formData);
+            }
+
             setNewBrand('');
+            setBrandImage(null);
+            setBrandImagePreview(null);
+            setEditingBrand(null);
             fetchDetails();
         } catch (e) {
-            console.error('Error adding brand:', e);
-            alert('Error adding brand');
+            console.error('Error saving brand:', e);
+            alert('Error saving brand');
         }
+    };
+
+    const handleEditBrand = (brand) => {
+        setEditingBrand(brand);
+        setNewBrand(brand.brand_name);
+        setBrandImagePreview(brand.brand_image);
+        setBrandImage(null); // Only set if user selects a new one
+    };
+
+    const cancelEdit = () => {
+        setEditingBrand(null);
+        setNewBrand('');
+        setBrandImage(null);
+        setBrandImagePreview(null);
     };
 
     const addAttribute = async () => {
@@ -140,23 +177,71 @@ export default function VehicleTypeDetails() {
                 {/* Brands Column */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <h2 className="text-xl font-bold mb-4">Brands</h2>
-                    <div className="flex gap-2 mb-4">
-                        <input
-                            className="flex-1 border border-gray-300 rounded-lg p-2"
-                            placeholder="Add Brand (e.g. Toyota)"
-                            value={newBrand}
-                            onChange={e => setNewBrand(e.target.value)}
-                        />
-                        <button onClick={addBrand} className="bg-gray-900 text-white px-4 rounded-lg hover:bg-black">Add</button>
+                    <div className="space-y-4 mb-6">
+                        <div className="flex gap-2">
+                            <input
+                                className="flex-1 border border-gray-300 rounded-lg p-2"
+                                placeholder="Brand Name (e.g. Toyota)"
+                                value={newBrand}
+                                onChange={e => setNewBrand(e.target.value)}
+                            />
+                            {editingBrand && (
+                                <button onClick={cancelEdit} className="px-3 text-gray-400 hover:text-red-500">
+                                    <X size={20} />
+                                </button>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="relative group">
+                                <div className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden bg-gray-50">
+                                    {brandImagePreview ? (
+                                        <img src={brandImagePreview} alt="Preview" className="w-full h-full object-contain" />
+                                    ) : (
+                                        <ImageIcon className="text-gray-300" size={24} />
+                                    )}
+                                </div>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    onChange={handleImageChange}
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-xs text-gray-500 mb-2">Upload brand logo (PNG/JPG, max 5MB)</p>
+                                <button
+                                    onClick={addBrand}
+                                    className={`w-full py-2 rounded-lg font-medium transition ${editingBrand ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-900 text-white hover:bg-black'}`}
+                                >
+                                    {editingBrand ? 'Update Brand' : 'Add Brand'}
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {brands.map(b => (
-                            <div key={b.id} className="bg-gray-100 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
-                                {b.brand_name}
-                                {/* <button className="text-gray-400 hover:text-red-500"><X size={14} /></button> */}
+                            <div key={b.id} className="group relative bg-gray-50 rounded-xl p-3 border border-gray-100 flex flex-col items-center text-center hover:border-blue-200 transition-all shadow-sm">
+                                <div className="w-12 h-12 mb-2 flex items-center justify-center bg-white rounded-lg shadow-inner overflow-hidden">
+                                    {b.brand_image ? (
+                                        <img src={b.brand_image} alt={b.brand_name} className="w-full h-full object-contain p-1" />
+                                    ) : (
+                                        <span className="text-lg font-bold text-gray-300">{b.brand_name[0]}</span>
+                                    )}
+                                </div>
+                                <span className="text-sm font-semibold text-gray-700 truncate w-full">{b.brand_name}</span>
+
+                                <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 backdrop-blur-sm rounded-lg p-1">
+                                    <button onClick={() => handleEditBrand(b)} className="text-blue-500 hover:text-blue-700 p-1">
+                                        <Edit2 size={14} />
+                                    </button>
+                                    {/* <button className="text-red-500 hover:text-red-700 p-1">
+                                        <Trash2 size={14} />
+                                    </button> */}
+                                </div>
                             </div>
                         ))}
-                        {brands.length === 0 && <p className="text-gray-400 text-sm">No brands added yet.</p>}
+                        {brands.length === 0 && <p className="text-gray-400 text-sm col-span-full">No brands added yet.</p>}
                     </div>
                 </div>
 
