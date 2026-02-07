@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Lock, Mail, Loader2, AlertCircle, Shield, Eye, EyeOff } from 'lucide-react';
-import axios from 'axios';
+import { Lock, Mail, Loader2, AlertCircle, Shield } from 'lucide-react';
+import { authApi } from '../../api';
 
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
+    const [success, setSuccess] = useState('');
     const { login } = useAuth();
     const navigate = useNavigate();
 
@@ -19,14 +19,17 @@ export default function Login() {
         setError('');
 
         try {
-            const response = await axios.post('http://localhost:5000/api/admin/login', {
+            const response = await authApi.login({
                 email,
                 password
             });
 
             if (response.data.success) {
-                login(response.data.admin, response.data.token);
-                navigate('/');
+                setSuccess(response.data.message || 'Login successful!');
+                setTimeout(() => {
+                    login(response.data.admin, response.data.token);
+                    navigate('/');
+                }, 1500);
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
@@ -36,8 +39,8 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center p-4 font-sans animate-fade-in">
-            <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden border border-white/50 animate-scale-in">
+        <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center p-4 font-sans">
+            <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-white/50">
                 {/* Header */}
                 <div className="bg-primary p-8 text-center relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-full bg-white/5 opacity-30 pattern-grid-lg"></div>
@@ -51,9 +54,16 @@ export default function Login() {
                 {/* Form */}
                 <div className="p-8">
                     {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 animate-shake">
+                        <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3">
                             <AlertCircle className="text-red-500 w-5 h-5 shrink-0" />
                             <p className="text-sm text-red-600 font-medium pt-0.5">{error}</p>
+                        </div>
+                    )}
+
+                    {success && (
+                        <div className="mb-6 p-4 bg-green-50 border border-green-100 rounded-xl flex items-start gap-3">
+                            <Shield className="text-green-500 w-5 h-5 shrink-0" />
+                            <p className="text-sm text-green-600 font-medium pt-0.5">{success}</p>
                         </div>
                     )}
 
@@ -78,27 +88,20 @@ export default function Login() {
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                                 <input
-                                    type={showPassword ? "text" : "password"}
+                                    type="password"
                                     required
-                                    className="w-full pl-10 pr-12 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-smooth text-gray-800"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-smooth p-1"
-                                >
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
                             </div>
                         </div>
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 px-4 bg-primary hover:bg-blue-600 text-white font-bold rounded-xl shadow-primary transition-smooth transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full py-3 px-4 bg-primary hover:bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transition-all transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>
