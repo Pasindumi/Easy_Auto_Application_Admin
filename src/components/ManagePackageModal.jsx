@@ -206,7 +206,9 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
                 {/* Header */}
                 <div className="p-6 border-b flex justify-between items-center bg-gray-50 shrink-0">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900">Manage Package</h2>
+                        <h2 className="text-xl font-bold text-gray-900">
+                            {packageItem?.item_type === 'BOOST_PACKAGE' ? 'Manage Boost Package' : 'Manage Package'}
+                        </h2>
                         <p className="text-sm text-gray-500">Configuring: <span className="font-semibold text-primary">{packageItem?.name}</span></p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
@@ -222,12 +224,14 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
                     >
                         <Settings size={16} /> Configuration
                     </button>
-                    <button
-                        onClick={() => setActiveTab('limits')}
-                        className={`flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-2 border-b-2 transition-colors ${activeTab === 'limits' ? 'border-primary text-primary bg-blue-50' : 'border-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
-                    >
-                        <ListChecks size={16} /> Ad Limits
-                    </button>
+                    {packageItem?.item_type !== 'BOOST_PACKAGE' && (
+                        <button
+                            onClick={() => setActiveTab('limits')}
+                            className={`flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-2 border-b-2 transition-colors ${activeTab === 'limits' ? 'border-primary text-primary bg-blue-50' : 'border-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
+                        >
+                            <ListChecks size={16} /> Ad Limits
+                        </button>
+                    )}
                     <button
                         onClick={() => setActiveTab('items')}
                         className={`flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-2 border-b-2 transition-colors ${activeTab === 'items' ? 'border-primary text-primary bg-blue-50' : 'border-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
@@ -259,23 +263,27 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
                                     />
                                     <p className="text-xs text-gray-400 mt-1">Leave empty for lifetime.</p>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Color Theme</label>
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="color"
-                                            className="h-10 w-10 p-1 border rounded-lg cursor-pointer"
-                                            value={config.color}
-                                            onChange={e => setConfig({ ...config, color: e.target.value })}
-                                        />
-                                        <input
-                                            type="text"
-                                            className="flex-1 border rounded-lg p-2 uppercase"
-                                            value={config.color}
-                                            onChange={e => setConfig({ ...config, color: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
+                                {packageItem?.item_type !== 'BOOST_PACKAGE' && (
+                                    <>
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Color Theme</label>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="color"
+                                                    className="h-10 w-10 p-1 border rounded-lg cursor-pointer"
+                                                    value={config.color}
+                                                    onChange={e => setConfig({ ...config, color: e.target.value })}
+                                                />
+                                                <input
+                                                    type="text"
+                                                    className="flex-1 border rounded-lg p-2 uppercase"
+                                                    value={config.color}
+                                                    onChange={e => setConfig({ ...config, color: e.target.value })}
+                                                />
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Card Image URL</label>
                                     <input
@@ -296,50 +304,54 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
                                         onChange={e => setConfig({ ...config, description: e.target.value })}
                                     />
                                 </div>
-                                <div>
-                                    <div className="flex justify-between items-center mb-1">
-                                        <label className="block text-sm font-medium text-gray-700">Image Limit</label>
-                                        <label className="flex items-center gap-1.5 cursor-pointer">
+                                {packageItem?.item_type !== 'BOOST_PACKAGE' && (
+                                    <>
+                                        <div>
+                                            <div className="flex justify-between items-center mb-1">
+                                                <label className="block text-sm font-medium text-gray-700">Image Limit</label>
+                                                <label className="flex items-center gap-1.5 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="w-3.5 h-3.5 rounded text-primary"
+                                                        checked={config.isImageUnlimited}
+                                                        onChange={e => setConfig({ ...config, isImageUnlimited: e.target.checked })}
+                                                    />
+                                                    <span className="text-xs font-semibold text-gray-500">Unlimited</span>
+                                                </label>
+                                            </div>
                                             <input
-                                                type="checkbox"
-                                                className="w-3.5 h-3.5 rounded text-primary"
-                                                checked={config.isImageUnlimited}
-                                                onChange={e => setConfig({ ...config, isImageUnlimited: e.target.checked })}
+                                                type="number"
+                                                className="w-full border rounded-lg p-2 disabled:bg-gray-50 disabled:text-gray-400"
+                                                placeholder={config.isImageUnlimited ? 'Unlimited' : 'e.g. 10'}
+                                                disabled={config.isImageUnlimited}
+                                                value={config.isImageUnlimited ? '' : config.imageLimit}
+                                                onChange={e => setConfig({ ...config, imageLimit: e.target.value })}
                                             />
-                                            <span className="text-xs font-semibold text-gray-500">Unlimited</span>
-                                        </label>
-                                    </div>
-                                    <input
-                                        type="number"
-                                        className="w-full border rounded-lg p-2 disabled:bg-gray-50 disabled:text-gray-400"
-                                        placeholder={config.isImageUnlimited ? 'Unlimited' : 'e.g. 10'}
-                                        disabled={config.isImageUnlimited}
-                                        value={config.isImageUnlimited ? '' : config.imageLimit}
-                                        onChange={e => setConfig({ ...config, imageLimit: e.target.value })}
-                                    />
-                                </div>
-                                <div>
-                                    <div className="flex justify-between items-center mb-1">
-                                        <label className="block text-sm font-medium text-gray-700">Description Limit</label>
-                                        <label className="flex items-center gap-1.5 cursor-pointer">
+                                        </div>
+                                        <div>
+                                            <div className="flex justify-between items-center mb-1">
+                                                <label className="block text-sm font-medium text-gray-700">Description Limit</label>
+                                                <label className="flex items-center gap-1.5 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="w-3.5 h-3.5 rounded text-primary"
+                                                        checked={config.isDescriptionUnlimited}
+                                                        onChange={e => setConfig({ ...config, isDescriptionUnlimited: e.target.checked })}
+                                                    />
+                                                    <span className="text-xs font-semibold text-gray-500">Unlimited</span>
+                                                </label>
+                                            </div>
                                             <input
-                                                type="checkbox"
-                                                className="w-3.5 h-3.5 rounded text-primary"
-                                                checked={config.isDescriptionUnlimited}
-                                                onChange={e => setConfig({ ...config, isDescriptionUnlimited: e.target.checked })}
+                                                type="number"
+                                                className="w-full border rounded-lg p-2 disabled:bg-gray-50 disabled:text-gray-400"
+                                                placeholder={config.isDescriptionUnlimited ? 'Unlimited' : 'e.g. 1000'}
+                                                disabled={config.isDescriptionUnlimited}
+                                                value={config.isDescriptionUnlimited ? '' : config.descriptionLimit}
+                                                onChange={e => setConfig({ ...config, descriptionLimit: e.target.value })}
                                             />
-                                            <span className="text-xs font-semibold text-gray-500">Unlimited</span>
-                                        </label>
-                                    </div>
-                                    <input
-                                        type="number"
-                                        className="w-full border rounded-lg p-2 disabled:bg-gray-50 disabled:text-gray-400"
-                                        placeholder={config.isDescriptionUnlimited ? 'Unlimited' : 'e.g. 1000'}
-                                        disabled={config.isDescriptionUnlimited}
-                                        value={config.isDescriptionUnlimited ? '' : config.descriptionLimit}
-                                        onChange={e => setConfig({ ...config, descriptionLimit: e.target.value })}
-                                    />
-                                </div>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                             <div className="flex justify-end">
                                 <button
