@@ -108,4 +108,10 @@ export const discountsApi = {
     delete: (id) => api.delete(`/discounts/${id}`),
 };
 
+// Reports API
+export const reportsApi = {
+    getAll: () => api.get('/reports/admin'),
+    updateStatus: (id, data) => api.put(`/reports/admin/${id}`, data),
+};
+
 export default api;
