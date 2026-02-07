@@ -8,10 +8,11 @@ import {
     AlertCircle,
     Clock,
     Search,
-    Filter
+    ShieldAlert,
+    Trash2
 } from 'lucide-react';
 import { reportsApi } from '../api';
-import clsx from 'clsx';
+import PageHeader from '../components/PageHeader';
 
 export default function AdReportsPage() {
     const [reports, setReports] = useState([]);
@@ -59,71 +60,59 @@ export default function AdReportsPage() {
 
     const getStatusStyles = (status) => {
         switch (status) {
-            case 'PENDING':
-                return 'bg-amber-50 text-amber-700 border-amber-200';
-            case 'REVIEWED':
-                return 'bg-blue-50 text-blue-700 border-blue-200';
-            case 'RESOLVED':
-                return 'bg-green-50 text-green-700 border-green-200';
-            default:
-                return 'bg-gray-50 text-gray-700 border-gray-200';
+            case 'PENDING': return 'bg-amber-50 text-amber-700 border-amber-200';
+            case 'REVIEWED': return 'bg-blue-50 text-blue-700 border-blue-200';
+            case 'RESOLVED': return 'bg-green-50 text-green-700 border-green-200';
+            default: return 'bg-gray-50 text-gray-700 border-gray-200';
         }
     };
 
-    const getStatusIcon = (status) => {
-        switch (status) {
-            case 'PENDING':
-                return <Clock size={14} />;
-            case 'REVIEWED':
-                return <AlertCircle size={14} />;
-            case 'RESOLVED':
-                return <CheckCircle2 size={14} />;
-            default:
-                return null;
-        }
-    };
+    const pendingCount = reports.filter(r => r.status === 'PENDING').length;
+    const resolvedCount = reports.filter(r => r.status === 'RESOLVED').length;
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Ad Reports</h1>
-                    <p className="text-gray-500 text-sm mt-1">Monitor and resolve reports for fake ads or spam</p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={fetchReports}
-                        className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
-                    >
-                        Refresh
-                    </button>
-                </div>
-            </div>
+        <div className="space-y-8">
+            <PageHeader
+                title="Report Moderation"
+                subtitle="Review and resolve user reports for flagged content."
+                breadcrumbs={['Dashboard', 'Reports']}
+                actions={
+                    <div className="flex items-center gap-4 text-sm font-medium text-gray-500">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 text-amber-700 rounded-lg border border-amber-100">
+                            <AlertCircle size={14} />
+                            <span>{pendingCount} Pending</span>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-lg border border-green-100">
+                            <CheckCircle2 size={14} />
+                            <span>{resolvedCount} Resolved</span>
+                        </div>
+                    </div>
+                }
+            />
 
-            {/* Filters */}
-            <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            {/* Toolbar */}
+            <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-lg flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div className="relative w-full md:w-96 group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={18} />
                     <input
                         type="text"
-                        placeholder="Search by ad title, reporter, or reason..."
-                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                        placeholder="Search reports..."
+                        className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-                    <Filter size={18} className="text-gray-400 mr-2" />
+                
+                <div className="flex p-1 bg-gray-50 rounded-xl border border-gray-100">
                     {['ALL', 'PENDING', 'REVIEWED', 'RESOLVED'].map((status) => (
                         <button
                             key={status}
                             onClick={() => setFilterStatus(status)}
-                            className={clsx(
-                                "px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all",
+                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${
                                 filterStatus === status
-                                    ? "bg-primary text-white shadow-md shadow-blue-500/20"
-                                    : "bg-gray-50 text-gray-500 hover:bg-gray-100"
-                            )}
+                                    ? 'bg-white text-gray-900 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-900'
+                            }`}
                         >
                             {status}
                         </button>
@@ -131,98 +120,96 @@ export default function AdReportsPage() {
                 </div>
             </div>
 
-            {/* Reports List */}
-            <div className="grid grid-cols-1 gap-4">
+            {/* Reports Grid */}
+            <div className="space-y-4">
                 {loading ? (
-                    <div className="text-center py-12">
-                        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-                        <p className="text-gray-500">Loading reports...</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm h-48 animate-pulse">
+                                <div className="h-4 bg-gray-100 rounded w-1/3 mb-4"></div>
+                                <div className="h-12 bg-gray-50 rounded-xl mb-4"></div>
+                                <div className="h-4 bg-gray-100 rounded w-1/2"></div>
+                            </div>
+                        ))}
                     </div>
                 ) : filteredReports.length === 0 ? (
-                    <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-                        <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-gray-300">
-                            <Flag size={32} />
+                    <div className="bg-white rounded-3xl border border-gray-100 p-16 text-center shadow-lg">
+                        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
+                            <ShieldAlert size={40} />
                         </div>
-                        <h3 className="text-lg font-bold text-gray-900">No reports found</h3>
-                        <p className="text-gray-500 max-w-xs mx-auto mt-1">There are no reports matching your current filters.</p>
+                        <h3 className="text-xl font-bold text-gray-900">No reports found</h3>
+                        <p className="text-gray-500 max-w-sm mx-auto mt-2">Everything looks clean! Checking regularly helps keep the platform safe.</p>
                     </div>
                 ) : (
-                    filteredReports.map((report) => (
-                        <div key={report.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:border-primary/30 transition-all group">
-                            <div className="p-5 md:p-6">
-                                <div className="flex flex-col md:flex-row gap-6">
-                                    {/* Action/Details */}
-                                    <div className="flex-1 space-y-4">
-                                        <div className="flex items-start justify-between">
-                                            <div className="space-y-1">
-                                                <div className="flex items-center gap-2">
-                                                    <span className={clsx(
-                                                        "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border flex items-center gap-1.5",
-                                                        getStatusStyles(report.status)
-                                                    )}>
-                                                        {getStatusIcon(report.status)}
-                                                        {report.status}
-                                                    </span>
-                                                    <span className="text-xs text-gray-400 font-medium">
-                                                        {new Date(report.created_at).toLocaleDateString()} at {new Date(report.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </span>
-                                                </div>
-                                                <h3 className="text-lg font-bold text-gray-900 group-hover:text-primary transition-colors flex items-center gap-2">
-                                                    {report.ad?.title || "Deleted Ad"}
-                                                    <a href={`http://localhost:5174/cars/${report.ad_id}`} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-primary">
-                                                        <ExternalLink size={16} />
-                                                    </a>
-                                                </h3>
-                                            </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {filteredReports.map((report) => (
+                            <div key={report.id} className="bg-white rounded-3xl border border-gray-100 shadow-lg hover:shadow-xl hover:border-primary/20 transition-all duration-300 group overflow-hidden flex flex-col">
+                                <div className="p-6 flex-1">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase border flex items-center gap-1.5 ${getStatusStyles(report.status)}`}>
+                                            {report.status === 'RESOLVED' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
+                                            {report.status}
+                                        </span>
+                                        <span className="text-xs font-medium text-gray-400">
+                                            {new Date(report.created_at).toLocaleDateString()}
+                                        </span>
+                                    </div>
 
-                                            <div className="flex items-center gap-2">
-                                                {report.status !== 'RESOLVED' && (
-                                                    <button
-                                                        onClick={() => handleUpdateStatus(report.id, 'RESOLVED')}
-                                                        className="p-2 text-green-600 hover:bg-green-50 rounded-xl transition-colors"
-                                                        title="Mark as Resolved"
-                                                    >
-                                                        <CheckCircle2 size={20} />
-                                                    </button>
-                                                )}
-                                                {report.status === 'PENDING' && (
-                                                    <button
-                                                        onClick={() => handleUpdateStatus(report.id, 'REVIEWED')}
-                                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
-                                                        title="Mark as Reviewed"
-                                                    >
-                                                        <AlertCircle size={20} />
-                                                    </button>
-                                                )}
-                                            </div>
+                                    <div className="flex items-start gap-4 mb-6">
+                                        <div className="w-12 h-12 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center shrink-0">
+                                            <Flag size={20} />
                                         </div>
-
-                                        <div className="p-4 bg-red-50/50 rounded-xl border border-red-100/50 flex gap-3">
-                                            <MessageSquare className="text-red-400 shrink-0" size={18} />
-                                            <p className="text-sm text-gray-700 italic">"{report.reason}"</p>
-                                        </div>
-
-                                        <div className="flex flex-wrap gap-4 pt-2">
-                                            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-                                                <User size={14} className="text-gray-400" />
-                                                <span className="text-xs font-semibold text-gray-600">Reporter:</span>
-                                                <span className="text-xs text-gray-900 font-bold">{report.reporter?.name || 'Anonymous'}</span>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-gray-900 line-clamp-1 mb-1" title={report.ad?.title}>
+                                                {report.ad?.title || <span className="text-red-400 italic">Deleted Advertisement</span>}
+                                            </h3>
+                                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                <User size={12} />
+                                                Reported by <span className="font-bold text-gray-700">{report.reporter?.name || 'Anonymous'}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-                                                <span className="text-xs font-semibold text-gray-600">Status:</span>
-                                                <span className={clsx(
-                                                    "text-xs font-bold",
-                                                    report.ad?.status === 'ACTIVE' ? "text-green-600" : "text-red-500"
-                                                )}>
-                                                    Ad is {report.ad?.status || 'UNKNOWN'}
-                                                </span>
-                                            </div>
+                                            {report.ad_id && (
+                                                <a 
+                                                    href={`http://localhost:5173/cars/${report.ad_id}`} 
+                                                    target="_blank" 
+                                                    rel="noreferrer"
+                                                    className="inline-flex items-center gap-1 text-xs font-bold text-primary mt-2 hover:underline"
+                                                >
+                                                    View Listing <ExternalLink size={10} />
+                                                </a>
+                                            )}
                                         </div>
                                     </div>
+
+                                    <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 relative mb-4">
+                                        <MessageSquare className="absolute top-4 left-4 text-gray-300" size={16} />
+                                        <p className="text-sm text-gray-700 pl-6 italic font-medium">"{report.reason}"</p>
+                                    </div>
+                                </div>
+
+                                <div className="bg-gray-50/50 p-4 border-t border-gray-100 flex gap-2">
+                                    {report.status !== 'RESOLVED' && (
+                                        <button
+                                            onClick={() => handleUpdateStatus(report.id, 'RESOLVED')}
+                                            className="flex-1 py-2.5 bg-green-50 hover:bg-green-100 text-green-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <CheckCircle2 size={16} /> Mark Resolved
+                                        </button>
+                                    )}
+                                    {report.status === 'PENDING' && (
+                                        <button
+                                            onClick={() => handleUpdateStatus(report.id, 'REVIEWED')}
+                                            className="flex-1 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <AlertCircle size={16} /> Review
+                                        </button>
+                                    )}
+                                    <button className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+                                        <Trash2 size={18} />
+                                    </button>
                                 </div>
                             </div>
-                        </div>
-                    ))
+                        ))}
+                    </div>
                 )}
             </div>
         </div>
