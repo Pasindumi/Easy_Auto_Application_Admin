@@ -42,6 +42,9 @@ export const authApi = {
 export const dashApi = {
     getStats: () => api.get('/admin/stats'),
     getUsers: () => api.get('/admin/users'),
+    banUser: (id, data) => api.put(`/admin/users/${id}/ban`, data),
+    blockUser: (id) => api.put(`/admin/users/${id}/block`),
+    unbanUser: (id) => api.put(`/admin/users/${id}/unban`),
 };
 
 // Ads API
@@ -59,7 +62,9 @@ export const configApi = {
     getConditions: (typeId) => api.get(`/vehicle-config/conditions/${typeId}`),
 
     addBrand: (data) => api.post('/vehicle-config/brands', data),
+    updateType: (id, data) => api.put(`/vehicle-config/types/${id}`, data),
     updateBrand: (id, data) => api.put(`/vehicle-config/brands/${id}`, data),
+
     addAttribute: (data) => api.post('/vehicle-config/attributes', data),
     addModel: (data) => api.post('/vehicle-config/models', data),
     addCondition: (data) => api.post('/vehicle-config/conditions', data),
@@ -112,6 +117,19 @@ export const discountsApi = {
 export const reportsApi = {
     getAll: () => api.get('/reports/admin'),
     updateStatus: (id, data) => api.put(`/reports/admin/${id}`, data),
+};
+
+// Complaints API
+export const complaintsApi = {
+    getAll: () => api.get('/complaints/admin'),
+    updateStatus: (id, data) => api.put(`/complaints/admin/${id}`, data),
+};
+
+// Boost API
+export const boostApi = {
+    getItems: () => api.get('/boosts/items'),
+    getPackages: () => api.get('/boosts/packages'),
+    apply: (data) => api.post('/boosts/apply', data),
 };
 
 export default api;

@@ -170,10 +170,46 @@ export default function VehicleTypeDetails() {
                 <ArrowLeft size={20} /> Back to Types
             </button>
 
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{type?.type_name} Configuration</h1>
             <p className="text-gray-500 mb-8">Manage brands and specific attributes for this vehicle type.</p>
 
+            {/* Expiry Settings Section */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+                <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <Info size={20} className="text-blue-500" />
+                    Ad Expiry Settings
+                </h2>
+                <div className="flex items-end gap-4 max-w-md">
+                    <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Period (Days)</label>
+                        <input
+                            type="number"
+                            className="w-full border border-gray-300 rounded-lg p-2"
+                            placeholder="e.g. 30"
+                            value={type?.expiry_days || ''}
+                            onChange={e => setType({ ...type, expiry_days: parseInt(e.target.value) })}
+                        />
+                    </div>
+                    <button
+                        onClick={async () => {
+                            try {
+                                await configApi.updateType(id, { expiry_days: type.expiry_days });
+                                alert('Expiry settings updated successfully');
+                                fetchDetails();
+                            } catch (e) {
+                                console.error('Error updating expiry:', e);
+                                alert('Error updating expiry settings');
+                            }
+                        }}
+                        className="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-600"
+                    >
+                        Save Settings
+                    </button>
+                </div>
+                <p className="text-xs text-gray-400 mt-2">This is the default duration for advertisements of this vehicle type. After this period, ads will be automatically marked as EXPIRED.</p>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
                 {/* Brands Column */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <h2 className="text-xl font-bold mb-4">Brands</h2>

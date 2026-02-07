@@ -11,7 +11,11 @@ import {
     MoreVertical,
     ExternalLink,
     UserCircle,
-    BadgeCheck
+    BadgeCheck,
+    Ban,
+    ShieldAlert,
+    ShieldCheck,
+    Clock
 } from 'lucide-react';
 import { dashApi } from '../api';
 import clsx from 'clsx';
@@ -21,6 +25,14 @@ export default function UsersPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
+
+    // Ban Modal State
+    const [showBanModal, setShowBanModal] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [banDuration, setBanDuration] = useState('24');
+    const [banReason, setBanReason] = useState('');
+    const [processing, setProcessing] = useState(false);
 
     useEffect(() => {
         fetchUsers();
@@ -40,6 +52,52 @@ export default function UsersPage() {
         }
     };
 
+    const handleBan = async () => {
+        if (!selectedUser) return;
+        try {
+            setProcessing(true);
+            const response = await dashApi.banUser(selectedUser.id, {
+                durationHours: banDuration,
+                reason: banReason
+            });
+            if (response.data.success) {
+                setShowBanModal(false);
+                setBanReason('');
+                fetchUsers();
+            }
+        } catch (error) {
+            console.error("Error banning user:", error);
+            alert("Failed to ban user");
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    const handleBlock = async (userId) => {
+        if (!window.confirm("Are you sure you want to PERMANENTLY block this user? They will never be able to log in again.")) return;
+        try {
+            const response = await dashApi.blockUser(userId);
+            if (response.data.success) {
+                fetchUsers();
+            }
+        } catch (error) {
+            console.error("Error blocking user:", error);
+            alert("Failed to block user");
+        }
+    };
+
+    const handleUnban = async (userId) => {
+        try {
+            const response = await dashApi.unbanUser(userId);
+            if (response.data.success) {
+                fetchUsers();
+            }
+        } catch (error) {
+            console.error("Error unbanning user:", error);
+            alert("Failed to reset user status");
+        }
+    };
+
     const filteredUsers = users.filter(user => {
         const matchesSearch =
             user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -47,8 +105,9 @@ export default function UsersPage() {
             user.phone?.includes(searchTerm);
 
         const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+        const matchesStatus = statusFilter === 'all' || (user.status || 'ACTIVE') === statusFilter;
 
-        return matchesSearch && matchesRole;
+        return matchesSearch && matchesRole && matchesStatus;
     });
 
     const formatDate = (dateStr) => {
@@ -80,10 +139,10 @@ export default function UsersPage() {
                         <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400">Total Users</span>
                     </div>
                     <div className="flex flex-col items-center px-4 py-1">
-                        <span className="text-xl font-black text-green-600">
-                            {users.filter(u => u.role === 'USER').length}
+                        <span className="text-xl font-black text-red-600">
+                            {users.filter(u => u.status === 'BANNED' || u.status === 'BLOCKED').length}
                         </span>
-                        <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400">Standard Users</span>
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400">Restricted</span>
                     </div>
                 </div>
             </div>
@@ -115,6 +174,20 @@ export default function UsersPage() {
                             <option value="ADMIN">Admin</option>
                         </select>
                     </div>
+
+                    <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl border border-gray-100">
+                        <ShieldAlert size={16} className="text-gray-400" />
+                        <select
+                            className="bg-transparent border-none text-sm font-semibold text-gray-700 focus:ring-0 p-0 pr-8"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                            <option value="all">All Status</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="BANNED">Banned</option>
+                            <option value="BLOCKED">Blocked</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -128,7 +201,7 @@ export default function UsersPage() {
                                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Role & Status</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Joined Date</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 text-center">Ad Activity</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100"></th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -165,16 +238,35 @@ export default function UsersPage() {
                                         </td>
                                         <td className="px-6 py-5">
                                             <div className="flex flex-col gap-1.5">
-                                                <span className={clsx(
-                                                    "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase border",
-                                                    user.role === 'SUPER_ADMIN' ? "bg-purple-50 text-purple-600 border-purple-100" :
-                                                        user.role === 'ADMIN' ? "bg-blue-50 text-blue-600 border-blue-100" :
-                                                            user.role === 'MODERATOR' ? "bg-amber-50 text-amber-600 border-amber-100" :
-                                                                "bg-gray-50 text-gray-600 border-gray-100"
-                                                )}>
-                                                    <BadgeCheck size={12} />
-                                                    {user.role}
-                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className={clsx(
+                                                        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase border",
+                                                        user.role === 'SUPER_ADMIN' ? "bg-purple-50 text-purple-600 border-purple-100" :
+                                                            user.role === 'ADMIN' ? "bg-blue-50 text-blue-600 border-blue-100" :
+                                                                user.role === 'MODERATOR' ? "bg-amber-50 text-amber-600 border-amber-100" :
+                                                                    "bg-gray-50 text-gray-600 border-gray-100"
+                                                    )}>
+                                                        <BadgeCheck size={12} />
+                                                        {user.role}
+                                                    </span>
+
+                                                    {/* Status Badge */}
+                                                    <span className={clsx(
+                                                        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase border",
+                                                        (user.status === 'ACTIVE' || !user.status) ? "bg-green-50 text-green-600 border-green-100" :
+                                                            user.status === 'BANNED' ? "bg-orange-50 text-orange-600 border-orange-100" :
+                                                                "bg-red-50 text-red-600 border-red-100"
+                                                    )}>
+                                                        {(user.status === 'ACTIVE' || !user.status) ? <ShieldCheck size={12} /> : <ShieldAlert size={12} />}
+                                                        {user.status || 'ACTIVE'}
+                                                    </span>
+                                                </div>
+                                                {user.status === 'BANNED' && user.ban_expires_at && (
+                                                    <span className="text-[10px] text-orange-500 font-bold flex items-center gap-1">
+                                                        <Clock size={10} />
+                                                        Till: {new Date(user.ban_expires_at).toLocaleString()}
+                                                    </span>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="px-6 py-5">
@@ -203,9 +295,36 @@ export default function UsersPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-5 text-right">
-                                            <button className="p-2 text-gray-400 hover:text-primary hover:bg-white rounded-xl transition-all shadow-none hover:shadow-lg hover:shadow-blue-500/10 active:scale-95">
-                                                <MoreVertical size={18} />
-                                            </button>
+                                            <div className="flex items-center justify-end gap-2">
+                                                {user.status === 'BANNED' || user.status === 'BLOCKED' ? (
+                                                    <button
+                                                        onClick={() => handleUnban(user.id)}
+                                                        className="p-2 text-green-600 hover:bg-green-50 rounded-xl transition-all title='Revoke Restrictions'"
+                                                    >
+                                                        <ShieldCheck size={18} />
+                                                    </button>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            onClick={() => { setSelectedUser(user); setShowBanModal(true); }}
+                                                            className="p-2 text-orange-500 hover:bg-orange-50 rounded-xl transition-all"
+                                                            title="Ban User"
+                                                        >
+                                                            <Clock size={18} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleBlock(user.id)}
+                                                            className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                                            title="Block User"
+                                                        >
+                                                            <Ban size={18} />
+                                                        </button>
+                                                    </>
+                                                )}
+                                                <button className="p-2 text-gray-400 hover:text-primary hover:bg-white rounded-xl transition-all shadow-none hover:shadow-lg hover:shadow-blue-500/10 active:scale-95">
+                                                    <MoreVertical size={18} />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -228,6 +347,67 @@ export default function UsersPage() {
                     </table>
                 </div>
             </div>
+
+            {/* Ban Modal */}
+            {showBanModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-gray-100 scale-in-center transition-all">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="p-3 bg-orange-50 text-orange-500 rounded-2xl">
+                                <ShieldAlert size={28} />
+                            </div>
+                            <div>
+                                <h3 className="text-2xl font-black text-gray-900 leading-tight">Ban User</h3>
+                                <p className="text-gray-500 font-medium">{selectedUser?.name || selectedUser?.email}</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-1">Ban Duration</label>
+                                <select
+                                    className="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 text-gray-700 font-bold focus:ring-2 focus:ring-primary/20 transition-all"
+                                    value={banDuration}
+                                    onChange={(e) => setBanDuration(e.target.value)}
+                                >
+                                    <option value="1">1 Hour</option>
+                                    <option value="12">12 Hours</option>
+                                    <option value="24">1 Day</option>
+                                    <option value="72">3 Days</option>
+                                    <option value="168">1 Week</option>
+                                    <option value="720">1 Month</option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-1">Reason for Ban</label>
+                                <textarea
+                                    className="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 text-gray-700 font-bold focus:ring-2 focus:ring-primary/20 transition-all min-h-[100px]"
+                                    placeholder="Explain why this user is being banned..."
+                                    value={banReason}
+                                    onChange={(e) => setBanReason(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="flex gap-4 pt-2">
+                                <button
+                                    onClick={() => setShowBanModal(false)}
+                                    className="flex-1 py-4 bg-gray-100 text-gray-600 font-black rounded-2xl hover:bg-gray-200 active:scale-95 transition-all uppercase tracking-widest text-xs"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleBan}
+                                    disabled={processing}
+                                    className="flex-1 py-4 bg-orange-500 text-white font-black rounded-2xl hover:bg-orange-600 active:scale-95 transition-all shadow-lg shadow-orange-500/20 uppercase tracking-widest text-xs disabled:opacity-50"
+                                >
+                                    {processing ? 'Banning...' : 'Apply Ban'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

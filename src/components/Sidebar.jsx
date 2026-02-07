@@ -29,7 +29,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
         { name: 'Users & Subscriptions', path: '/subscribers', icon: ShieldCheck },
         { name: 'Packages & Pricing', path: '/pricing', icon: Sliders },
         { name: 'Discounts & Offers', path: '/discounts', icon: Percent },
-        { name: 'Ad Reports', path: '/reports', icon: Flag },
+        { name: 'Reports & Complaints', path: '/reports', icon: Flag },
         { name: 'System Limits', path: '/settings/limits', icon: Settings },
     ];
 
