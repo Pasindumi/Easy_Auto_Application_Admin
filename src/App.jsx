@@ -13,6 +13,7 @@ import PricingPage from './pages/PricingPage';
 import DiscountsPage from './pages/DiscountsPage';
 import SubscribersPage from './pages/SubscribersPage';
 import UsersPage from './pages/UsersPage';
+import AdReportsPage from './pages/AdReportsPage';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
             <Route path="/users" element={<UsersPage />} />
             <Route path="/subscribers" element={<SubscribersPage />} />
             <Route path="/discounts" element={<DiscountsPage />} />
+            <Route path="/reports" element={<AdReportsPage />} />
             <Route path="/settings/limits" element={<SystemLimits />} />
           </Route>
 
