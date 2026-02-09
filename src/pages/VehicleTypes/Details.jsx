@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { configApi } from '../../api';
-import { 
-    ArrowLeft, 
-    Trash2, 
-    Plus, 
-    Info, 
-    Image as ImageIcon, 
-    X, 
+import {
+    ArrowLeft,
+    Trash2,
+    Plus,
+    Info,
+    Image as ImageIcon,
+    X,
     Edit2,
     Layers,
     Tag,
@@ -187,13 +187,13 @@ export default function VehicleTypeDetails() {
 
     return (
         <div className="space-y-6">
-            <PageHeader 
+            <PageHeader
                 title={`${type?.type_name || 'Vehicle'} Settings`}
                 subtitle="Configure brands, models, and attributes for this category."
                 breadcrumbs={['Dashboard', 'Vehicle Types', type?.type_name]}
                 actions={
-                    <button 
-                        onClick={() => navigate('/vehicle-types')} 
+                    <button
+                        onClick={() => navigate('/vehicle-types')}
                         className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors"
                     >
                         <ArrowLeft size={18} /> Back
@@ -207,11 +207,10 @@ export default function VehicleTypeDetails() {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-300 ${
-                            activeTab === tab.id 
-                                ? 'bg-primary text-white shadow-md shadow-primary/20 transform scale-[1.02]' 
-                                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                        }`}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-300 ${activeTab === tab.id
+                            ? 'bg-primary text-white shadow-md shadow-primary/20 transform scale-[1.02]'
+                            : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                            }`}
                     >
                         {tab.icon}
                         {tab.label}
@@ -224,7 +223,7 @@ export default function VehicleTypeDetails() {
 
             {/* Content Area */}
             <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 min-h-[500px] animate-fade-in">
-                
+
                 {/* BRANDS TAB */}
                 {activeTab === 'brands' && (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -235,7 +234,7 @@ export default function VehicleTypeDetails() {
                                     <Plus size={20} className="text-primary" />
                                     {editingBrand ? 'Edit Brand' : 'Add New Brand'}
                                 </h3>
-                                
+
                                 <div className="space-y-4">
                                     <div className="flex gap-2">
                                         <input
@@ -250,7 +249,7 @@ export default function VehicleTypeDetails() {
                                             </button>
                                         )}
                                     </div>
-                                    
+
                                     <div className="flex items-center gap-4">
                                         <label className="relative group cursor-pointer">
                                             <div className="w-20 h-20 rounded-2xl border-2 border-dashed border-blue-300 flex items-center justify-center overflow-hidden bg-white hover:border-primary transition-colors">
@@ -276,76 +275,11 @@ export default function VehicleTypeDetails() {
                                             </button>
                                         </div>
                                     </div>
-            <p className="text-gray-500 mb-8">Manage brands and specific attributes for this vehicle type.</p>
-
-            {/* Expiry Settings Section */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                    <Info size={20} className="text-blue-500" />
-                    Ad Expiry Settings
-                </h2>
-                <div className="flex items-end gap-4 max-w-md">
-                    <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Period (Days)</label>
-                        <input
-                            type="number"
-                            className="w-full border border-gray-300 rounded-lg p-2"
-                            placeholder="e.g. 30"
-                            value={type?.expiry_days || ''}
-                            onChange={e => setType({ ...type, expiry_days: parseInt(e.target.value) })}
-                        />
-                    </div>
-                    <button
-                        onClick={async () => {
-                            try {
-                                await configApi.updateType(id, { expiry_days: type.expiry_days });
-                                alert('Expiry settings updated successfully');
-                                fetchDetails();
-                            } catch (e) {
-                                console.error('Error updating expiry:', e);
-                                alert('Error updating expiry settings');
-                            }
-                        }}
-                        className="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-600"
-                    >
-                        Save Settings
-                    </button>
-                </div>
-                <p className="text-xs text-gray-400 mt-2">This is the default duration for advertisements of this vehicle type. After this period, ads will be automatically marked as EXPIRED.</p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-                {/* Brands Column */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <h2 className="text-xl font-bold mb-4">Brands</h2>
-                    <div className="space-y-4 mb-6">
-                        <div className="flex gap-2">
-                            <input
-                                className="flex-1 border border-gray-300 rounded-lg p-2"
-                                placeholder="Brand Name (e.g. Toyota)"
-                                value={newBrand}
-                                onChange={e => setNewBrand(e.target.value)}
-                            />
-                            {editingBrand && (
-                                <button onClick={cancelEdit} className="px-3 text-gray-400 hover:text-red-500">
-                                    <X size={20} />
-                                </button>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <div className="relative group">
-                                <div className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden bg-gray-50">
-                                    {brandImagePreview ? (
-                                        <img src={brandImagePreview} alt="Preview" className="w-full h-full object-contain" />
-                                    ) : (
-                                        <ImageIcon className="text-gray-300" size={24} />
-                                    )}
                                 </div>
                             </div>
                         </div>
 
-                        {/* List */}
+                        {/* List Column */}
                         <div className="lg:col-span-2">
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                 {brands.map(b => (
@@ -419,8 +353,8 @@ export default function VehicleTypeDetails() {
                                         />
                                         <span className="text-sm font-bold text-gray-700">Required Field</span>
                                     </label>
-                                    <button 
-                                        onClick={addAttribute} 
+                                    <button
+                                        onClick={addAttribute}
                                         className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-purple-500/20"
                                     >
                                         Add Field
@@ -524,14 +458,14 @@ export default function VehicleTypeDetails() {
                 {activeTab === 'conditions' && (
                     <div className="max-w-2xl mx-auto space-y-8 text-center">
                         <div className="flex gap-3">
-                             <input
+                            <input
                                 className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-6 py-4 text-lg font-medium focus:ring-2 focus:ring-primary/20"
                                 placeholder="Condition (e.g. Brand New)"
                                 value={newCondition}
                                 onChange={e => setNewCondition(e.target.value)}
                             />
-                            <button 
-                                onClick={addCondition} 
+                            <button
+                                onClick={addCondition}
                                 className="px-8 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-green-500/30"
                             >
                                 Add
