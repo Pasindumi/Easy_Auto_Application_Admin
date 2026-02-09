@@ -9,14 +9,11 @@ import {
     Clock,
     Search,
     ShieldAlert,
-    Trash2
-} from 'lucide-react';
-import { reportsApi } from '../api';
-import PageHeader from '../components/PageHeader';
-    Filter,
-    ShieldAlert
+    Trash2,
+    Filter
 } from 'lucide-react';
 import { reportsApi, complaintsApi } from '../api';
+import PageHeader from '../components/PageHeader';
 import clsx from 'clsx';
 
 export default function AdReportsPage() {
@@ -101,6 +98,15 @@ export default function AdReportsPage() {
         }
     };
 
+    const getStatusIcon = (status) => {
+        switch (status) {
+            case 'PENDING': return <Clock size={12} />;
+            case 'REVIEWED': return <AlertCircle size={12} />;
+            case 'RESOLVED': return <CheckCircle2 size={12} />;
+            default: return <Clock size={12} />;
+        }
+    };
+
     const pendingCount = reports.filter(r => r.status === 'PENDING').length;
     const resolvedCount = reports.filter(r => r.status === 'RESOLVED').length;
 
@@ -123,275 +129,191 @@ export default function AdReportsPage() {
                     </div>
                 }
             />
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        {view === 'REPORTS' ? 'Ad Reports' : 'User Complaints'}
-                    </h1>
-                    <p className="text-gray-500 text-sm mt-1">
-                        {view === 'REPORTS'
-                            ? 'Monitor and resolve reports for fake ads or spam'
-                            : 'Manage and respond to user complaints and feedback'}
-                    </p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <div className="bg-gray-100 p-1 rounded-xl flex">
+
+            <div className="space-y-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">
+                            {view === 'REPORTS' ? 'Ad Reports' : 'User Complaints'}
+                        </h1>
+                        <p className="text-gray-500 text-sm mt-1">
+                            {view === 'REPORTS'
+                                ? 'Monitor and resolve reports for fake ads or spam'
+                                : 'Manage and respond to user complaints and feedback'}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="bg-gray-100 p-1 rounded-xl flex">
+                            <button
+                                onClick={() => { setView('REPORTS'); setFilterStatus('ALL'); }}
+                                className={clsx(
+                                    "px-4 py-2 rounded-lg text-sm font-bold transition-all",
+                                    view === 'REPORTS' ? "bg-white text-primary shadow-sm" : "text-gray-500 hover:text-gray-700"
+                                )}
+                            >
+                                Ad Reports
+                            </button>
+                            <button
+                                onClick={() => { setView('COMPLAINTS'); setFilterStatus('ALL'); }}
+                                className={clsx(
+                                    "px-4 py-2 rounded-lg text-sm font-bold transition-all",
+                                    view === 'COMPLAINTS' ? "bg-white text-primary shadow-sm" : "text-gray-500 hover:text-gray-700"
+                                )}
+                            >
+                                Complaints
+                            </button>
+                        </div>
                         <button
-                            onClick={() => { setView('REPORTS'); setFilterStatus('ALL'); }}
-                            className={clsx(
-                                "px-4 py-2 rounded-lg text-sm font-bold transition-all",
-                                view === 'REPORTS' ? "bg-white text-primary shadow-sm" : "text-gray-500 hover:text-gray-700"
-                            )}
+                            onClick={fetchData}
+                            className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
                         >
-                            Ad Reports
-                        </button>
-                        <button
-                            onClick={() => { setView('COMPLAINTS'); setFilterStatus('ALL'); }}
-                            className={clsx(
-                                "px-4 py-2 rounded-lg text-sm font-bold transition-all",
-                                view === 'COMPLAINTS' ? "bg-white text-primary shadow-sm" : "text-gray-500 hover:text-gray-700"
-                            )}
-                        >
-                            Complaints
+                            Refresh
                         </button>
                     </div>
-                    <button
-                        onClick={fetchData}
-                        className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
-                    >
-                        Refresh
-                    </button>
                 </div>
-            </div>
 
-            {/* Toolbar */}
-            <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-lg flex flex-col md:flex-row gap-4 items-center justify-between">
-                <div className="relative w-full md:w-96 group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={18} />
-                    <input
-                        type="text"
-                        placeholder="Search reports..."
-                        className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all"
-                        placeholder={view === 'REPORTS'
-                            ? "Search by ad title, reporter, or reason..."
-                            : "Search by user, email, category, or message..."}
-                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
-                
-                <div className="flex p-1 bg-gray-50 rounded-xl border border-gray-100">
-                    {['ALL', 'PENDING', 'REVIEWED', 'RESOLVED'].map((status) => (
-                        <button
-                            key={status}
-                            onClick={() => setFilterStatus(status)}
-                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${
-                                filterStatus === status
-                                    ? 'bg-white text-gray-900 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-900'
-                            }`}
-                        >
-                            {status}
-                        </button>
-                    ))}
-                </div>
-            </div>
+                {/* Toolbar */}
+                <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-lg flex flex-col md:flex-row gap-4 items-center justify-between">
+                    <div className="relative w-full md:w-96 group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={18} />
+                        <input
+                            type="text"
+                            placeholder={view === 'REPORTS'
+                                ? "Search by ad title, reporter, or reason..."
+                                : "Search by user, email, category, or message..."}
+                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
 
-            {/* Reports Grid */}
-            <div className="space-y-4">
-                {loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm h-48 animate-pulse">
-                                <div className="h-4 bg-gray-100 rounded w-1/3 mb-4"></div>
-                                <div className="h-12 bg-gray-50 rounded-xl mb-4"></div>
-                                <div className="h-4 bg-gray-100 rounded w-1/2"></div>
-                            </div>
+                    <div className="flex p-1 bg-gray-50 rounded-xl border border-gray-100">
+                        {['ALL', 'PENDING', 'REVIEWED', 'RESOLVED'].map((status) => (
+                            <button
+                                key={status}
+                                onClick={() => setFilterStatus(status)}
+                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${filterStatus === status
+                                        ? 'bg-white text-gray-900 shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-900'
+                                    }`}
+                            >
+                                {status}
+                            </button>
                         ))}
                     </div>
-                ) : filteredReports.length === 0 ? (
-                    <div className="bg-white rounded-3xl border border-gray-100 p-16 text-center shadow-lg">
-                        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
-                            <ShieldAlert size={40} />
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-900">No reports found</h3>
-                        <p className="text-gray-500 max-w-sm mx-auto mt-2">Everything looks clean! Checking regularly helps keep the platform safe.</p>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {filteredReports.map((report) => (
-                            <div key={report.id} className="bg-white rounded-3xl border border-gray-100 shadow-lg hover:shadow-xl hover:border-primary/20 transition-all duration-300 group overflow-hidden flex flex-col">
-                                <div className="p-6 flex-1">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase border flex items-center gap-1.5 ${getStatusStyles(report.status)}`}>
-                                            {report.status === 'RESOLVED' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
-                                            {report.status}
-                                        </span>
-                                        <span className="text-xs font-medium text-gray-400">
-                                            {new Date(report.created_at).toLocaleDateString()}
-                                        </span>
-                                    </div>
+                </div>
 
-                                    <div className="flex items-start gap-4 mb-6">
-                                        <div className="w-12 h-12 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center shrink-0">
-                                            <Flag size={20} />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-lg font-bold text-gray-900 line-clamp-1 mb-1" title={report.ad?.title}>
-                                                {report.ad?.title || <span className="text-red-400 italic">Deleted Advertisement</span>}
-                                            </h3>
-                                            <div className="flex items-center gap-2 text-xs text-gray-500">
-                                                <User size={12} />
-                                                Reported by <span className="font-bold text-gray-700">{report.reporter?.name || 'Anonymous'}</span>
-                                            </div>
-                                            {report.ad_id && (
-                                                <a 
-                                                    href={`http://localhost:5173/cars/${report.ad_id}`} 
-                                                    target="_blank" 
-                                                    rel="noreferrer"
-                                                    className="inline-flex items-center gap-1 text-xs font-bold text-primary mt-2 hover:underline"
-                                                >
-                                                    View Listing <ExternalLink size={10} />
-                                                </a>
-            {/* Content List */}
-            <div className="grid grid-cols-1 gap-4">
-                {loading ? (
-                    <div className="text-center py-12">
-                        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-                        <p className="text-gray-500">Loading {view.toLowerCase()}...</p>
-                    </div>
-                ) : filteredData.length === 0 ? (
-                    <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-                        <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-gray-300">
-                            {view === 'REPORTS' ? <Flag size={32} /> : <ShieldAlert size={32} />}
+                {/* Content List */}
+                <div className="grid grid-cols-1 gap-6">
+                    {loading ? (
+                        <div className="text-center py-12">
+                            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                            <p className="text-gray-500">Loading {view.toLowerCase()}...</p>
                         </div>
-                        <h3 className="text-lg font-bold text-gray-900">No {view.toLowerCase()} found</h3>
-                        <p className="text-gray-500 max-w-xs mx-auto mt-1">There are no {view.toLowerCase()} matching your current filters.</p>
-                    </div>
-                ) : (
-                    filteredData.map((item) => (
-                        <div key={item.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:border-primary/30 transition-all group">
-                            <div className="p-5 md:p-6">
-                                <div className="flex flex-col md:flex-row gap-6">
-                                    <div className="flex-1 space-y-4">
-                                        <div className="flex items-start justify-between">
-                                            <div className="space-y-1">
-                                                <div className="flex items-center gap-2">
-                                                    <span className={clsx(
-                                                        "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border flex items-center gap-1.5",
-                                                        getStatusStyles(item.status)
-                                                    )}>
-                                                        {getStatusIcon(item.status)}
-                                                        {item.status}
-                                                    </span>
-                                                    <span className="text-xs text-gray-400 font-medium">
-                                                        {new Date(item.created_at).toLocaleDateString()} at {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </span>
-                                                </div>
-                                                <h3 className="text-lg font-bold text-gray-900 group-hover:text-primary transition-colors flex items-center gap-2">
+                    ) : filteredData.length === 0 ? (
+                        <div className="bg-white rounded-3xl border border-gray-100 p-16 text-center shadow-lg">
+                            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
+                                {view === 'REPORTS' ? <Flag size={40} /> : <ShieldAlert size={40} />}
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900">No {view.toLowerCase()} found</h3>
+                            <p className="text-gray-500 max-w-sm mx-auto mt-2">Everything looks clean! Checking regularly helps keep the platform safe.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {filteredData.map((item) => (
+                                <div key={item.id} className="bg-white rounded-3xl border border-gray-100 shadow-lg hover:shadow-xl hover:border-primary/20 transition-all duration-300 group overflow-hidden flex flex-col">
+                                    <div className="p-6 flex-1">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <span className={clsx(
+                                                "px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase border flex items-center gap-1.5",
+                                                getStatusStyles(item.status)
+                                            )}>
+                                                {getStatusIcon(item.status)}
+                                                {item.status}
+                                            </span>
+                                            <span className="text-xs font-medium text-gray-400">
+                                                {new Date(item.created_at).toLocaleDateString()}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-start gap-4 mb-6">
+                                            <div className={clsx(
+                                                "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0",
+                                                view === 'REPORTS' ? "bg-red-50 text-red-500" : "bg-blue-50 text-blue-500"
+                                            )}>
+                                                {view === 'REPORTS' ? <Flag size={20} /> : <ShieldAlert size={20} />}
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-bold text-gray-900 line-clamp-1 mb-1" title={view === 'REPORTS' ? (item.ad?.title || "Deleted Ad") : item.category}>
                                                     {view === 'REPORTS' ? (
                                                         <>
-                                                            {item.ad?.title || "Deleted Ad"}
-                                                            <a href={`http://localhost:5174/cars/${item.ad_id}`} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-primary">
-                                                                <ExternalLink size={16} />
-                                                            </a>
+                                                            {item.ad?.title || <span className="text-red-400 italic">Deleted Advertisement</span>}
+                                                            {item.ad_id && (
+                                                                <a
+                                                                    href={`http://localhost:5173/cars/${item.ad_id}`}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    className="inline-flex items-center gap-1 text-xs font-bold text-primary ml-2 hover:underline"
+                                                                >
+                                                                    View <ExternalLink size={10} />
+                                                                </a>
+                                                            )}
                                                         </>
-                                                    ) : (
-                                                        <>
-                                                            <ShieldAlert size={20} className="text-red-500" />
-                                                            {item.category}
-                                                        </>
-                                                    )}
+                                                    ) : item.category}
                                                 </h3>
-                                            </div>
-
-                                            <div className="flex items-center gap-2">
-                                                {item.status !== 'RESOLVED' && (
-                                                    <button
-                                                        onClick={() => handleUpdateStatus(item.id, 'RESOLVED')}
-                                                        className="p-2 text-green-600 hover:bg-green-50 rounded-xl transition-colors"
-                                                        title="Mark as Resolved"
-                                                    >
-                                                        <CheckCircle2 size={20} />
-                                                    </button>
-                                                )}
-                                                {item.status === 'PENDING' && (
-                                                    <button
-                                                        onClick={() => handleUpdateStatus(item.id, 'REVIEWED')}
-                                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
-                                                        title="Mark as Reviewed"
-                                                    >
-                                                        <AlertCircle size={20} />
-                                                    </button>
-                                                )}
+                                                <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                    <User size={12} />
+                                                    {view === 'REPORTS' ? "Reported by " : "From "}
+                                                    <span className="font-bold text-gray-700">
+                                                        {view === 'REPORTS'
+                                                            ? (item.reporter?.name || 'Anonymous')
+                                                            : (item.user?.name || 'User')}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
 
                                         <div className={clsx(
-                                            "p-4 rounded-xl border flex gap-3",
+                                            "p-4 rounded-xl border flex gap-3 mb-4",
                                             view === 'REPORTS' ? "bg-red-50/50 border-red-100/50" : "bg-blue-50/50 border-blue-100/50"
                                         )}>
                                             <MessageSquare className={clsx("shrink-0", view === 'REPORTS' ? "text-red-400" : "text-blue-400")} size={18} />
-                                            <p className="text-sm text-gray-700 italic">"{view === 'REPORTS' ? item.reason : item.message}"</p>
+                                            <p className="text-sm text-gray-700 font-medium italic">"{view === 'REPORTS' ? item.reason : item.message}"</p>
                                         </div>
 
-                                        <div className="flex flex-wrap gap-4 pt-2">
-                                            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-                                                <User size={14} className="text-gray-400" />
-                                                <span className="text-xs font-semibold text-gray-600">User:</span>
-                                                <span className="text-xs text-gray-900 font-bold">
-                                                    {view === 'REPORTS'
-                                                        ? (item.reporter?.name || 'Anonymous')
-                                                        : (item.user?.name || 'User') + ` (${item.user?.email || 'No email'})`}
-                                                </span>
+                                        {view === 'COMPLAINTS' && item.user?.email && (
+                                            <div className="text-xs text-gray-500 mb-4 bg-gray-50 p-2 rounded-lg border border-gray-100">
+                                                Email: <span className="font-bold text-gray-700">{item.user.email}</span>
                                             </div>
-                                            {view === 'REPORTS' && (
-                                                <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-                                                    <span className="text-xs font-semibold text-gray-600">Ad Status:</span>
-                                                    <span className={clsx(
-                                                        "text-xs font-bold",
-                                                        item.ad?.status === 'ACTIVE' ? "text-green-600" : "text-red-500"
-                                                    )}>
-                                                        {item.ad?.status || 'UNKNOWN'}
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
+                                        )}
                                     </div>
 
-                                    <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 relative mb-4">
-                                        <MessageSquare className="absolute top-4 left-4 text-gray-300" size={16} />
-                                        <p className="text-sm text-gray-700 pl-6 italic font-medium">"{report.reason}"</p>
+                                    <div className="bg-gray-50/50 p-4 border-t border-gray-100 flex gap-2">
+                                        {item.status !== 'RESOLVED' && (
+                                            <button
+                                                onClick={() => handleUpdateStatus(item.id, 'RESOLVED')}
+                                                className="flex-1 py-2.5 bg-green-50 hover:bg-green-100 text-green-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
+                                            >
+                                                <CheckCircle2 size={16} /> Mark Resolved
+                                            </button>
+                                        )}
+                                        {item.status === 'PENDING' && (
+                                            <button
+                                                onClick={() => handleUpdateStatus(item.id, 'REVIEWED')}
+                                                className="flex-1 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
+                                            >
+                                                <AlertCircle size={16} /> Review
+                                            </button>
+                                        )}
+                                        <button className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+                                            <Trash2 size={18} />
+                                        </button>
                                     </div>
                                 </div>
-
-                                <div className="bg-gray-50/50 p-4 border-t border-gray-100 flex gap-2">
-                                    {report.status !== 'RESOLVED' && (
-                                        <button
-                                            onClick={() => handleUpdateStatus(report.id, 'RESOLVED')}
-                                            className="flex-1 py-2.5 bg-green-50 hover:bg-green-100 text-green-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
-                                        >
-                                            <CheckCircle2 size={16} /> Mark Resolved
-                                        </button>
-                                    )}
-                                    {report.status === 'PENDING' && (
-                                        <button
-                                            onClick={() => handleUpdateStatus(report.id, 'REVIEWED')}
-                                            className="flex-1 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
-                                        >
-                                            <AlertCircle size={16} /> Review
-                                        </button>
-                                    )}
-                                    <button className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
-                                        <Trash2 size={18} />
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

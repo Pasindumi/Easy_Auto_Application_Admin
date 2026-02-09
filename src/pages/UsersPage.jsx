@@ -8,7 +8,7 @@ import {
     MoreVertical,
     UserCircle,
     BadgeCheck,
-    Shield
+    Shield,
     Ban,
     ShieldAlert,
     ShieldCheck,
@@ -122,10 +122,10 @@ export default function UsersPage() {
                         )}
                     </div>
                     <div>
-                        <p className="font-bold text-gray-900 group-hover:text-primary transition-colors">
+                        <p className="font-bold text-gray-900 group-hover:text-primary transition-colors text-sm">
                             {user.name || 'Anonymous User'}
                         </p>
-                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                        <div className="flex items-center gap-1.5 text-[10px] text-gray-500">
                             <Mail size={12} className="text-gray-400" />
                             {user.email}
                         </div>
@@ -134,25 +134,41 @@ export default function UsersPage() {
             )
         },
         {
-            header: 'Role',
-            accessor: 'role',
+            header: 'Role & Status',
             render: (user) => (
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase border ${
-                    user.role === 'SUPER_ADMIN' ? "bg-purple-50 text-purple-600 border-purple-100" :
-                    user.role === 'ADMIN' ? "bg-blue-50 text-blue-600 border-blue-100" :
-                    user.role === 'MODERATOR' ? "bg-amber-50 text-amber-600 border-amber-100" :
-                    "bg-gray-50 text-gray-600 border-gray-100"
-                }`}>
-                    {user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' ? <Shield size={10} /> : <BadgeCheck size={10} />}
-                    {user.role}
-                </span>
+                <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase border ${user.role === 'SUPER_ADMIN' ? "bg-purple-50 text-purple-600 border-purple-100" :
+                            user.role === 'ADMIN' ? "bg-blue-50 text-blue-600 border-blue-100" :
+                                user.role === 'MODERATOR' ? "bg-amber-50 text-amber-600 border-amber-100" :
+                                    "bg-gray-50 text-gray-600 border-gray-100"
+                            }`}>
+                            {user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' ? <Shield size={10} /> : <BadgeCheck size={10} />}
+                            {user.role}
+                        </span>
+
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase border ${(user.status === 'ACTIVE' || !user.status) ? "bg-green-50 text-green-600 border-green-100" :
+                            user.status === 'BANNED' ? "bg-orange-50 text-orange-600 border-orange-100" :
+                                "bg-red-50 text-red-600 border-red-100"
+                            }`}>
+                            {(user.status === 'ACTIVE' || !user.status) ? <ShieldCheck size={12} /> : <ShieldAlert size={12} />}
+                            {user.status || 'ACTIVE'}
+                        </span>
+                    </div>
+                    {user.status === 'BANNED' && user.ban_expires_at && (
+                        <span className="text-[10px] text-orange-500 font-bold flex items-center gap-1">
+                            <Clock size={10} />
+                            Till: {new Date(user.ban_expires_at).toLocaleString()}
+                        </span>
+                    )}
+                </div>
             )
         },
         {
             header: 'Joined',
             accessor: 'created_at',
             render: (user) => (
-                <div className="flex items-center gap-2 text-sm text-gray-500">
+                <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
                     <Calendar size={14} className="text-gray-400" />
                     {new Date(user.created_at).toLocaleDateString()}
                 </div>
@@ -171,31 +187,53 @@ export default function UsersPage() {
                     <div className="flex flex-col items-center">
                         <span className="font-bold text-gray-500 text-sm">{user.stats?.drafted || 0}</span>
                         <span className="text-[10px] text-gray-400 font-bold uppercase">Drafts</span>
-                    <div className="flex flex-col items-center px-4 py-1">
-                        <span className="text-xl font-black text-red-600">
-                            {users.filter(u => u.status === 'BANNED' || u.status === 'BLOCKED').length}
-                        </span>
-                        <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400">Restricted</span>
                     </div>
                 </div>
             )
         },
         {
-            header: '',
+            header: 'Actions',
             align: 'right',
-            width: '50px',
-            render: () => (
-                <button className="p-2 text-gray-400 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors">
-                    <MoreVertical size={18} />
-                </button>
+            render: (user) => (
+                <div className="flex items-center justify-end gap-2">
+                    {user.status === 'BANNED' || user.status === 'BLOCKED' ? (
+                        <button
+                            onClick={() => handleUnban(user.id)}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-xl transition-all"
+                            title="Revoke Restrictions"
+                        >
+                            <ShieldCheck size={18} />
+                        </button>
+                    ) : (
+                        <>
+                            <button
+                                onClick={() => { setSelectedUser(user); setShowBanModal(true); }}
+                                className="p-2 text-orange-500 hover:bg-orange-50 rounded-xl transition-all"
+                                title="Ban User"
+                            >
+                                <Clock size={18} />
+                            </button>
+                            <button
+                                onClick={() => handleBlock(user.id)}
+                                className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                title="Block User"
+                            >
+                                <Ban size={18} />
+                            </button>
+                        </>
+                    )}
+                    <button className="p-2 text-gray-400 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors">
+                        <MoreVertical size={18} />
+                    </button>
+                </div>
             )
         }
     ];
 
     return (
         <div className="space-y-6">
-            <PageHeader 
-                title="User Management" 
+            <PageHeader
+                title="User Management"
                 subtitle="Manage and monitor all registered users."
                 breadcrumbs={['Dashboard', 'Users']}
                 actions={
@@ -214,7 +252,7 @@ export default function UsersPage() {
                 }
             />
 
-            <DataTable 
+            <DataTable
                 columns={columns}
                 data={filteredUsers}
                 loading={loading}
@@ -239,179 +277,6 @@ export default function UsersPage() {
                     description: "Try adjusting filters or invite new users."
                 }}
             />
-
-                    <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl border border-gray-100">
-                        <ShieldAlert size={16} className="text-gray-400" />
-                        <select
-                            className="bg-transparent border-none text-sm font-semibold text-gray-700 focus:ring-0 p-0 pr-8"
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                        >
-                            <option value="all">All Status</option>
-                            <option value="ACTIVE">Active</option>
-                            <option value="BANNED">Banned</option>
-                            <option value="BLOCKED">Blocked</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            {/* Users Table */}
-            <div className="bg-white rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/50 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-gray-50/50">
-                                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">User Details</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Role & Status</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Joined Date</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 text-center">Ad Activity</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {loading ? (
-                                Array(5).fill(0).map((_, i) => (
-                                    <tr key={i} className="animate-pulse">
-                                        <td colSpan="5" className="px-6 py-8">
-                                            <div className="h-12 bg-gray-100 rounded-xl w-full"></div>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : filteredUsers.length > 0 ? (
-                                filteredUsers.map((user) => (
-                                    <tr key={user.id} className="hover:bg-blue-50/30 transition-colors group">
-                                        <td className="px-6 py-5">
-                                            <div className="flex items-center gap-4">
-                                                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-500 border border-white shadow-sm overflow-hidden flex-shrink-0">
-                                                    {user.avatar ? (
-                                                        <img src={user.avatar} alt="" className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <UserCircle size={24} />
-                                                    )}
-                                                </div>
-                                                <div className="flex flex-col min-w-0">
-                                                    <span className="text-sm font-bold text-gray-900 truncate group-hover:text-primary transition-colors">
-                                                        {user.name || 'Anonymous User'}
-                                                    </span>
-                                                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                                                        <Mail size={12} className="text-gray-400" />
-                                                        <span className="truncate">{user.email}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-5">
-                                            <div className="flex flex-col gap-1.5">
-                                                <div className="flex items-center gap-2">
-                                                    <span className={clsx(
-                                                        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase border",
-                                                        user.role === 'SUPER_ADMIN' ? "bg-purple-50 text-purple-600 border-purple-100" :
-                                                            user.role === 'ADMIN' ? "bg-blue-50 text-blue-600 border-blue-100" :
-                                                                user.role === 'MODERATOR' ? "bg-amber-50 text-amber-600 border-amber-100" :
-                                                                    "bg-gray-50 text-gray-600 border-gray-100"
-                                                    )}>
-                                                        <BadgeCheck size={12} />
-                                                        {user.role}
-                                                    </span>
-
-                                                    {/* Status Badge */}
-                                                    <span className={clsx(
-                                                        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase border",
-                                                        (user.status === 'ACTIVE' || !user.status) ? "bg-green-50 text-green-600 border-green-100" :
-                                                            user.status === 'BANNED' ? "bg-orange-50 text-orange-600 border-orange-100" :
-                                                                "bg-red-50 text-red-600 border-red-100"
-                                                    )}>
-                                                        {(user.status === 'ACTIVE' || !user.status) ? <ShieldCheck size={12} /> : <ShieldAlert size={12} />}
-                                                        {user.status || 'ACTIVE'}
-                                                    </span>
-                                                </div>
-                                                {user.status === 'BANNED' && user.ban_expires_at && (
-                                                    <span className="text-[10px] text-orange-500 font-bold flex items-center gap-1">
-                                                        <Clock size={10} />
-                                                        Till: {new Date(user.ban_expires_at).toLocaleString()}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-5">
-                                            <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
-                                                <Calendar size={14} className="text-gray-400" />
-                                                {formatDate(user.created_at)}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-5">
-                                            <div className="flex items-center justify-center gap-4">
-                                                <div className="flex flex-col items-center">
-                                                    <div className="flex items-center gap-1 text-primary font-bold">
-                                                        <Car size={14} />
-                                                        <span className="text-sm">{user.stats?.posted || 0}</span>
-                                                    </div>
-                                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Posted</span>
-                                                </div>
-                                                <div className="w-px h-8 bg-gray-100"></div>
-                                                <div className="flex flex-col items-center">
-                                                    <div className="flex items-center gap-1 text-gray-500 font-bold">
-                                                        <FileText size={14} />
-                                                        <span className="text-sm">{user.stats?.drafted || 0}</span>
-                                                    </div>
-                                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Drafts</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-5 text-right">
-                                            <div className="flex items-center justify-end gap-2">
-                                                {user.status === 'BANNED' || user.status === 'BLOCKED' ? (
-                                                    <button
-                                                        onClick={() => handleUnban(user.id)}
-                                                        className="p-2 text-green-600 hover:bg-green-50 rounded-xl transition-all title='Revoke Restrictions'"
-                                                    >
-                                                        <ShieldCheck size={18} />
-                                                    </button>
-                                                ) : (
-                                                    <>
-                                                        <button
-                                                            onClick={() => { setSelectedUser(user); setShowBanModal(true); }}
-                                                            className="p-2 text-orange-500 hover:bg-orange-50 rounded-xl transition-all"
-                                                            title="Ban User"
-                                                        >
-                                                            <Clock size={18} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleBlock(user.id)}
-                                                            className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                                                            title="Block User"
-                                                        >
-                                                            <Ban size={18} />
-                                                        </button>
-                                                    </>
-                                                )}
-                                                <button className="p-2 text-gray-400 hover:text-primary hover:bg-white rounded-xl transition-all shadow-none hover:shadow-lg hover:shadow-blue-500/10 active:scale-95">
-                                                    <MoreVertical size={18} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="5" className="px-6 py-20 text-center">
-                                        <div className="flex flex-col items-center gap-4">
-                                            <div className="p-4 bg-gray-50 rounded-full text-gray-300">
-                                                <Users size={48} />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <p className="text-gray-900 font-bold text-lg">No users found</p>
-                                                <p className="text-gray-500 text-sm">Try adjusting your filters or search term.</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
 
             {/* Ban Modal */}
             {showBanModal && (
