@@ -49,7 +49,7 @@ export const dashApi = {
 
 // Ads API
 export const adsApi = {
-    getAll: (status) => api.get(`/cars/admin/all?status=${status || ''}`),
+    getAll: (status) => api.get(status ? `/cars/admin/all?status=${status}` : '/cars/admin/all'),
     updateStatus: (id, data) => api.put(`/cars/admin/${id}/status`, data),
 };
 
@@ -74,31 +74,31 @@ export const configApi = {
 // Pricing API
 export const pricingApi = {
     // Items
-    getItems: () => api.get('/pricing/items'),
-    createItem: (data) => api.post('/pricing/items', data),
-    updateItem: (id, data) => api.put(`/pricing/items/${id}`, data),
-    deleteItem: (id) => api.delete(`/pricing/items/${id}`),
+    getItems: () => api.get('/pricing/admin/items'),
+    createItem: (data) => api.post('/pricing/admin/items', data),
+    updateItem: (id, data) => api.put(`/pricing/admin/items/${id}`, data),
+    deleteItem: (id) => api.delete(`/pricing/admin/items/${id}`),
 
     // Rules
-    getRules: () => api.get('/pricing/rules'),
-    createRule: (data) => api.post('/pricing/rules', data),
-    updateRule: (id, data) => api.put(`/pricing/rules/${id}`, data),
-    deleteRule: (id) => api.delete(`/pricing/rules/${id}`),
+    getRules: () => api.get('/pricing/admin/rules'),
+    createRule: (data) => api.post('/pricing/admin/rules', data),
+    updateRule: (id, data) => api.put(`/pricing/admin/rules/${id}`, data),
+    deleteRule: (id) => api.delete(`/pricing/admin/rules/${id}`),
 
     // Features
-    getFeatures: (priceItemIds) => api.get(`/pricing/features?priceItemIds=${priceItemIds || ''}`),
-    addFeature: (data) => api.post('/pricing/features', data),
-    deleteFeature: (id) => api.delete(`/pricing/features/${id}`),
+    getFeatures: (priceItemIds) => api.get(`/pricing/admin/features?priceItemIds=${priceItemIds || ''}`),
+    addFeature: (data) => api.post('/pricing/admin/features', data),
+    deleteFeature: (id) => api.delete(`/pricing/admin/features/${id}`),
 
     // Package Included Items
-    getPackageItems: (packageId) => api.get(`/pricing/package-items/${packageId}`),
-    addPackageItem: (data) => api.post('/pricing/package-items', data),
-    deletePackageItem: (id) => api.delete(`/pricing/package-items/${id}`),
+    getPackageItems: (packageId) => api.get(`/pricing/admin/package-items/${packageId}`),
+    addPackageItem: (data) => api.post('/pricing/admin/package-items', data),
+    deletePackageItem: (id) => api.delete(`/pricing/admin/package-items/${id}`),
 
     // Package Ad Limits
-    getPackageAdLimits: (packageId) => api.get(`/pricing/package-limits/${packageId}`),
-    addPackageAdLimit: (data) => api.post('/pricing/package-limits', data),
-    deletePackageAdLimit: (id) => api.delete(`/pricing/package-limits/${id}`),
+    getPackageAdLimits: (packageId) => api.get(`/pricing/admin/package-limits/${packageId}`),
+    addPackageAdLimit: (data) => api.post('/pricing/admin/package-limits', data),
+    deletePackageAdLimit: (id) => api.delete(`/pricing/admin/package-limits/${id}`),
 
     // Subscriptions
     getSubscribers: () => api.get('/pricing/admin/subscribers'),
