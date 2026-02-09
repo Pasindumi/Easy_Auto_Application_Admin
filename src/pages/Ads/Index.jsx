@@ -300,6 +300,59 @@ export default function Ads() {
                                             <MapPin size={14} /> {selectedAd.location}
                                         </span>
                                     </div>
+                                    {/* Seller Info */}
+                                    <section className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
+                                        <h3 className="text-sm font-bold text-blue-900 mb-4 flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                                            Seller Details
+                                        </h3>
+                                        {selectedAd.seller ? (
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <p className="text-gray-500 text-xs mb-0.5">Full Name</p>
+                                                    <p className="font-semibold text-gray-900">{selectedAd.seller.name}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-gray-500 text-xs mb-0.5">Email Address</p>
+                                                    <p className="font-medium text-gray-800">{selectedAd.seller.email}</p>
+                                                </div>
+                                                {selectedAd.seller.phone && (
+                                                    <div>
+                                                        <p className="text-gray-500 text-xs mb-0.5">Phone Number</p>
+                                                        <p className="font-medium text-gray-800">{selectedAd.seller.phone}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <p className="text-sm text-gray-500 italic">Seller information not available</p>
+                                        )}
+                                    </section>
+
+                                    {/* Boost Info */}
+                                    {selectedAd.active_boosts && selectedAd.active_boosts.length > 0 && (
+                                        <section className="bg-yellow-50 p-5 rounded-2xl border border-yellow-200 shadow-sm shadow-yellow-100">
+                                            <h3 className="text-sm font-bold text-yellow-800 mb-4 flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></div>
+                                                Active Boost Information
+                                            </h3>
+                                            <div className="space-y-4">
+                                                {selectedAd.active_boosts.map((boost, idx) => (
+                                                    <div key={idx} className="pb-3 border-b border-yellow-200/50 last:border-0 last:pb-0">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <div className="bg-yellow-400 p-1 rounded">
+                                                                <Eye size={14} className="text-white" />
+                                                            </div>
+                                                            <p className="font-bold text-yellow-900">{boost.package?.name || 'Boost Active'}</p>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-xs text-yellow-700 ml-7">
+                                                            <Clock size={12} />
+                                                            <span>Expires: {new Date(boost.end_date).toLocaleDateString()}</span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </section>
+                                    )}
                                 </div>
                                 <div className="text-right">
                                     <p className="text-3xl font-black text-primary">${selectedAd.price?.toLocaleString()}</p>

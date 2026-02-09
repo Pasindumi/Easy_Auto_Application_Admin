@@ -31,6 +31,7 @@ export default function Sidebar() {
         { name: 'Pricing & Plans', path: '/pricing', icon: CreditCard },
         { name: 'Discounts', path: '/discounts', icon: Percent },
         { name: 'Reports', path: '/reports', icon: FileText },
+        { name: 'System Limits', path: '/settings/limits', icon: Settings },
     ];
 
     const bottomItems = [

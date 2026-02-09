@@ -276,6 +276,71 @@ export default function VehicleTypeDetails() {
                                             </button>
                                         </div>
                                     </div>
+            <p className="text-gray-500 mb-8">Manage brands and specific attributes for this vehicle type.</p>
+
+            {/* Expiry Settings Section */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+                <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <Info size={20} className="text-blue-500" />
+                    Ad Expiry Settings
+                </h2>
+                <div className="flex items-end gap-4 max-w-md">
+                    <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Period (Days)</label>
+                        <input
+                            type="number"
+                            className="w-full border border-gray-300 rounded-lg p-2"
+                            placeholder="e.g. 30"
+                            value={type?.expiry_days || ''}
+                            onChange={e => setType({ ...type, expiry_days: parseInt(e.target.value) })}
+                        />
+                    </div>
+                    <button
+                        onClick={async () => {
+                            try {
+                                await configApi.updateType(id, { expiry_days: type.expiry_days });
+                                alert('Expiry settings updated successfully');
+                                fetchDetails();
+                            } catch (e) {
+                                console.error('Error updating expiry:', e);
+                                alert('Error updating expiry settings');
+                            }
+                        }}
+                        className="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-600"
+                    >
+                        Save Settings
+                    </button>
+                </div>
+                <p className="text-xs text-gray-400 mt-2">This is the default duration for advertisements of this vehicle type. After this period, ads will be automatically marked as EXPIRED.</p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+                {/* Brands Column */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <h2 className="text-xl font-bold mb-4">Brands</h2>
+                    <div className="space-y-4 mb-6">
+                        <div className="flex gap-2">
+                            <input
+                                className="flex-1 border border-gray-300 rounded-lg p-2"
+                                placeholder="Brand Name (e.g. Toyota)"
+                                value={newBrand}
+                                onChange={e => setNewBrand(e.target.value)}
+                            />
+                            {editingBrand && (
+                                <button onClick={cancelEdit} className="px-3 text-gray-400 hover:text-red-500">
+                                    <X size={20} />
+                                </button>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="relative group">
+                                <div className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden bg-gray-50">
+                                    {brandImagePreview ? (
+                                        <img src={brandImagePreview} alt="Preview" className="w-full h-full object-contain" />
+                                    ) : (
+                                        <ImageIcon className="text-gray-300" size={24} />
+                                    )}
                                 </div>
                             </div>
                         </div>

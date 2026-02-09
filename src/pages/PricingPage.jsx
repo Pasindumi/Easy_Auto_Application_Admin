@@ -18,7 +18,7 @@ import PageHeader from '../components/PageHeader';
 import DataTable from '../components/DataTable';
 
 export default function PricingPage() {
-    const [activeTab, setActiveTab] = useState('ads'); // 'ads' | 'items' | 'rules'
+    const [activeTab, setActiveTab] = useState('ads'); // 'ads' | 'items' | 'rules' | 'boosts'
     const [items, setItems] = useState([]);
     const [rules, setRules] = useState([]);
     const [vehicleTypes, setVehicleTypes] = useState([]);
@@ -355,6 +355,37 @@ export default function PricingPage() {
                     </div>
                 }
             />
+            {/* Tabs */}
+            <div className="flex gap-4 mb-6 border-b border-gray-200">
+                <button
+                    onClick={() => setActiveTab('ads')}
+                    className={`pb-3 px-1 font-semibold text-sm transition-colors relative ${activeTab === 'ads' ? 'text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    Advertisement Prices
+                    {activeTab === 'ads' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full" />}
+                </button>
+                <button
+                    onClick={() => setActiveTab('items')}
+                    className={`pb-3 px-1 font-semibold text-sm transition-colors relative ${activeTab === 'items' ? 'text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    Price Items
+                    {activeTab === 'items' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full" />}
+                </button>
+                <button
+                    onClick={() => setActiveTab('rules')}
+                    className={`pb-3 px-1 font-semibold text-sm transition-colors relative ${activeTab === 'rules' ? 'text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    All Rules
+                    {activeTab === 'rules' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full" />}
+                </button>
+                <button
+                    onClick={() => setActiveTab('boosts')}
+                    className={`pb-3 px-1 font-semibold text-sm transition-colors relative ${activeTab === 'boosts' ? 'text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    Boost Packages
+                    {activeTab === 'boosts' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-t-full" />}
+                </button>
+            </div>
 
             {/* Content Area */}
             {activeTab === 'ads' && (
@@ -421,6 +452,70 @@ export default function PricingPage() {
             )}
 
             {/* Item Modal - Simplified inline for brevity */}
+            {/* Content for Boost Packages */}
+            {activeTab === 'boosts' && (
+                <div className="space-y-4">
+                    <div className="flex justify-end">
+                        <button
+                            onClick={() => {
+                                setNewItem({ code: '', name: '', item_type: 'BOOST_PACKAGE', description: '', status: 'ACTIVE' });
+                                setEditingItemId(null);
+                                setIsItemModalOpen(true);
+                            }}
+                            className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all shadow-sm"
+                        >
+                            <Plus size={18} /> Create Boost Package
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {items.filter(i => i.item_type === 'BOOST_PACKAGE').map((item) => (
+                            <div key={item.id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all p-5 relative group">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="p-3 rounded-lg bg-orange-50 text-orange-600">
+                                        <Plus size={24} />
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleEditItem(item)}
+                                            className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                        >
+                                            <Edit2 size={16} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteItem(item.id)}
+                                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-gray-900 text-lg mb-1">{item.name}</h3>
+                                    <p className="text-sm text-gray-500 mb-3">{item.description || 'No description'}</p>
+                                    <div className="flex flex-wrap gap-2 mb-4">
+                                        <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded font-mono border border-gray-200">
+                                            {item.code}
+                                        </span>
+                                        <span className={`text-xs px-2 py-1 rounded font-semibold ${item.status === 'ACTIVE' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                                            {item.status}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => openFeatureModal(item)}
+                                    className="w-full mt-2 border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <Layers size={16} />
+                                    Configure Boost
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {isItemModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-slide-up">
@@ -435,6 +530,36 @@ export default function PricingPage() {
                                     <option value="ACTIVE">Active</option>
                                     <option value="INACTIVE">Inactive</option>
                                 </select>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                <input className="w-full border rounded-lg p-2" value={newItem.name} onChange={e => setNewItem({ ...newItem, name: e.target.value })} />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Code (Unique)</label>
+                                <input className="w-full border rounded-lg p-2 uppercase" value={newItem.code} onChange={e => setNewItem({ ...newItem, code: e.target.value })} placeholder="e.g. PACKAGE_GOLD" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                                    <select className="w-full border rounded-lg p-2" value={newItem.item_type} onChange={e => setNewItem({ ...newItem, item_type: e.target.value })}>
+                                        <option value="AD">AD</option>
+                                        <option value="EXTRA">EXTRA</option>
+                                        <option value="PACKAGE">PACKAGE</option>
+                                        <option value="BOOST_PACKAGE">BOOST PACKAGE</option>
+                                        <option value="BOOST_ITEM">BOOST ITEM</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                    <select className="w-full border rounded-lg p-2" value={newItem.status} onChange={e => setNewItem({ ...newItem, status: e.target.value })}>
+                                        <option value="ACTIVE">Active</option>
+                                        <option value="INACTIVE">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <textarea className="w-full border rounded-lg p-2" value={newItem.description} onChange={e => setNewItem({ ...newItem, description: e.target.value })} rows={3} />
                             </div>
                             <select className="width-full border-gray-200 bg-gray-50 rounded-xl p-3 w-full outline-none" value={newItem.item_type} onChange={e => setNewItem({ ...newItem, item_type: e.target.value })}>
                                 <option value="AD">AD (Basic Listing)</option>
@@ -466,6 +591,33 @@ export default function PricingPage() {
                                 <select className="w-full border-gray-200 bg-gray-50 rounded-xl p-3 outline-none" value={newRule.price_item_id} onChange={e => setNewRule({ ...newRule, price_item_id: e.target.value })}>
                                     <option value="">Select Item...</option>
                                     {items.map(i => <option key={i.id} value={i.id}>{i.name} ({i.code})</option>)}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Price Item</label>
+                                    <select
+                                        className="w-full border rounded-lg p-2"
+                                        value={newRule.price_item_id}
+                                        onChange={e => setNewRule({ ...newRule, price_item_id: e.target.value })}
+                                    >
+                                        <option value="">Select Item...</option>
+                                        {items.map(i => <option key={i.id} value={i.id}>{i.name} ({i.code})</option>)}
+                                    </select>
+                                </div>
+                            )}
+
+                            {/* Vehicle Type Selection - Always show */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Type</label>
+                                <select
+                                    className="w-full border rounded-lg p-2"
+                                    value={newRule.vehicle_type_id || ''}
+                                    onChange={e => setNewRule({ ...newRule, vehicle_type_id: e.target.value || null })}
+                                >
+                                    <option value="">All Types (Default)</option>
+                                    {vehicleTypes.map(type => (
+                                        <option key={type.id} value={type.id}>
+                                            {type.type_name}
+                                        </option>
+                                    ))}
                                 </select>
                             )}
                             
