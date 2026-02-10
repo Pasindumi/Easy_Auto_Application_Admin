@@ -17,29 +17,24 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
         imageLimit: '5',
         descriptionLimit: '500',
         isImageUnlimited: false,
-        isDescriptionUnlimited: false
+        isDescriptionUnlimited: false,
+        freeAdsLimit: '',
+        isUnlimitedAds: false
     });
 
     // Lists
     const [includedItems, setIncludedItems] = useState([]);
-    const [adLimits, setAdLimits] = useState([]);
     const [vehicleTypes, setVehicleTypes] = useState([]);
 
     // Form States
     // 1. For Included Items
     const [newItemSelection, setNewItemSelection] = useState({
         included_item_id: '',
-        vehicle_type_id: '',
         quantity: 1,
         is_unlimited: false
     });
 
-    // 2. For Ad Limits
-    const [newLimitSelection, setNewLimitSelection] = useState({
-        vehicle_type_id: '',
-        quantity: 1,
-        is_unlimited: false
-    });
+    // 2. For Ad Limits (REMOVED - Moving to global limit)
 
     useEffect(() => {
         if (isOpen && packageItem) {
@@ -61,6 +56,8 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
             const desc = featRes.data.find(f => f.feature_key === 'DESCRIPTION')?.feature_value || '';
             const imgLimit = featRes.data.find(f => f.feature_key === 'IMAGE_LIMIT')?.feature_value || '5';
             const descLimit = featRes.data.find(f => f.feature_key === 'DESCRIPTION_LIMIT')?.feature_value || '500';
+            const freeAdsLimit = featRes.data.find(f => f.feature_key === 'FREE_ADS_LIMIT')?.feature_value || '';
+            const isUnlimitedAds = featRes.data.find(f => f.feature_key === 'IS_UNLIMITED_ADS')?.feature_value === 'true';
 
             setConfig({
                 duration,
@@ -70,16 +67,17 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
                 imageLimit: imgLimit === 'UNLIMITED' ? '' : imgLimit,
                 descriptionLimit: descLimit === 'UNLIMITED' ? '' : descLimit,
                 isImageUnlimited: imgLimit === 'UNLIMITED',
-                isDescriptionUnlimited: descLimit === 'UNLIMITED'
+                isDescriptionUnlimited: descLimit === 'UNLIMITED',
+                freeAdsLimit: freeAdsLimit,
+                isUnlimitedAds: isUnlimitedAds
             });
 
             // Fetch Included Items
             const itemsRes = await pricingApi.getPackageItems(packageItem.id);
             setIncludedItems(itemsRes.data);
 
-            // Fetch Ad Limits
-            const limitsRes = await pricingApi.getPackageAdLimits(packageItem.id);
-            setAdLimits(limitsRes.data);
+            // Ad Limits (REMOVED - Per-vehicle type limits are no longer used)
+            // But we might want to check if any exist and log/clear them or just ignore
 
             // Fetch Vehicle Types if not already
             if (vehicleTypes.length === 0) {
@@ -128,7 +126,9 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
                 saveConfigValue('PACKAGE_IMAGE', config.imageUrl, 'Card display image'),
                 saveConfigValue('DESCRIPTION', config.description, 'Package description text'),
                 saveConfigValue('IMAGE_LIMIT', config.isImageUnlimited ? 'UNLIMITED' : config.imageLimit, 'Max images allowed per ad'),
-                saveConfigValue('DESCRIPTION_LIMIT', config.isDescriptionUnlimited ? 'UNLIMITED' : config.descriptionLimit, 'Max characters in description')
+                saveConfigValue('DESCRIPTION_LIMIT', config.isDescriptionUnlimited ? 'UNLIMITED' : config.descriptionLimit, 'Max characters in description'),
+                saveConfigValue('FREE_ADS_LIMIT', config.freeAdsLimit, 'Total free ads allowed across all types'),
+                saveConfigValue('IS_UNLIMITED_ADS', config.isUnlimitedAds ? 'true' : 'false', 'Allow unlimited ads across all types')
             ]);
             await fetchData();
             alert('Configuration saved!');
@@ -139,34 +139,7 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
         }
     };
 
-    // --- Ad Limits Handlers ---
-
-    const handleAddAdLimit = async () => {
-        if (!newLimitSelection.vehicle_type_id) return;
-        setLoading(true);
-        try {
-            await pricingApi.addPackageAdLimit({
-                package_id: packageItem.id,
-                ...newLimitSelection
-            });
-            setNewLimitSelection({ vehicle_type_id: '', quantity: 1, is_unlimited: false });
-            fetchData();
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleDeleteAdLimit = async (id) => {
-        if (!window.confirm('Remove this limit?')) return;
-        try {
-            await pricingApi.deletePackageAdLimit(id);
-            setAdLimits(adLimits.filter(l => l.id !== id));
-        } catch (err) {
-            setError(err.message);
-        }
-    };
+    // --- Ad Limits Handlers (REMOVED) ---
 
     // --- Included Items Handlers ---
 
@@ -176,9 +149,10 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
         try {
             await pricingApi.addPackageItem({
                 package_id: packageItem.id,
-                ...newItemSelection
+                ...newItemSelection,
+                vehicle_type_id: '' // Force empty for global categorization
             });
-            setNewItemSelection({ included_item_id: '', vehicle_type_id: '', quantity: 1, is_unlimited: false });
+            setNewItemSelection({ included_item_id: '', quantity: 1, is_unlimited: false });
             fetchData();
         } catch (err) {
             setError(err.message);
@@ -224,14 +198,7 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
                     >
                         <Settings size={16} /> Configuration
                     </button>
-                    {packageItem?.item_type !== 'BOOST_PACKAGE' && (
-                        <button
-                            onClick={() => setActiveTab('limits')}
-                            className={`flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-2 border-b-2 transition-colors ${activeTab === 'limits' ? 'border-primary text-primary bg-blue-50' : 'border-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
-                        >
-                            <ListChecks size={16} /> Ad Limits
-                        </button>
-                    )}
+                    {/* Ad Limits Tab (REMOVED) */}
                     <button
                         onClick={() => setActiveTab('items')}
                         className={`flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-2 border-b-2 transition-colors ${activeTab === 'items' ? 'border-primary text-primary bg-blue-50' : 'border-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
@@ -306,6 +273,30 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
                                 </div>
                                 {packageItem?.item_type !== 'BOOST_PACKAGE' && (
                                     <>
+                                        <div className="md:col-span-2 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <label className="block text-sm font-bold text-blue-800">Total Package Ad Slots (Global)</label>
+                                                <label className="flex items-center gap-1.5 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="w-4 h-4 rounded text-blue-600"
+                                                        checked={config.isUnlimitedAds}
+                                                        onChange={e => setConfig({ ...config, isUnlimitedAds: e.target.checked })}
+                                                    />
+                                                    <span className="text-sm font-bold text-blue-600">Pure Unlimited</span>
+                                                </label>
+                                            </div>
+                                            <p className="text-xs text-blue-600/70 mb-3">If set, this package allows a total number of ads across ANY vehicle type.</p>
+                                            <input
+                                                type="number"
+                                                className="w-full border-blue-200 rounded-lg p-2 bg-white disabled:bg-blue-100/50"
+                                                placeholder={config.isUnlimitedAds ? 'Unlimited' : 'e.g. 5'}
+                                                disabled={config.isUnlimitedAds}
+                                                value={config.isUnlimitedAds ? '' : config.freeAdsLimit}
+                                                onChange={e => setConfig({ ...config, freeAdsLimit: e.target.value })}
+                                            />
+                                        </div>
+
                                         <div>
                                             <div className="flex justify-between items-center mb-1">
                                                 <label className="block text-sm font-medium text-gray-700">Image Limit</label>
@@ -365,98 +356,7 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
                         </div>
                     )}
 
-                    {activeTab === 'limits' && (
-                        <div className="space-y-6">
-                            <div className="bg-green-50/50 p-4 rounded-lg text-sm text-green-800 mb-4 border border-green-100 flex items-start gap-2">
-                                <div className="mt-0.5"><ListChecks size={16} /></div>
-                                <div>
-                                    Set how many advertisements a user can post for each vehicle type with this package.
-                                </div>
-                            </div>
-
-                            {/* Add Ad Limit Form */}
-                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                <h3 className="text-sm font-bold text-gray-700 mb-3 uppercase">Add Ad Limit</h3>
-                                <div className="flex flex-col md:flex-row gap-3 items-end">
-                                    <div className="flex-1 w-full">
-                                        <label className="block text-xs font-semibold text-gray-500 mb-1">Vehicle Type</label>
-                                        <select
-                                            className="w-full border rounded-lg p-2"
-                                            value={newLimitSelection.vehicle_type_id}
-                                            onChange={e => setNewLimitSelection({ ...newLimitSelection, vehicle_type_id: e.target.value })}
-                                        >
-                                            <option value="">Select Type...</option>
-                                            {vehicleTypes.map(t => (
-                                                <option key={t.id} value={t.id}>{t.type_name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="w-full md:w-32">
-                                        <label className="block text-xs font-semibold text-gray-500 mb-1">Qty</label>
-                                        <input
-                                            type="number"
-                                            className="w-full border rounded-lg p-2"
-                                            disabled={newLimitSelection.is_unlimited}
-                                            value={newLimitSelection.quantity}
-                                            onChange={e => setNewLimitSelection({ ...newLimitSelection, quantity: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="pb-3 px-2">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                className="w-4 h-4 rounded text-primary"
-                                                checked={newLimitSelection.is_unlimited}
-                                                onChange={e => setNewLimitSelection({ ...newLimitSelection, is_unlimited: e.target.checked })}
-                                            />
-                                            <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Unlimited</span>
-                                        </label>
-                                    </div>
-                                    <button
-                                        onClick={handleAddAdLimit}
-                                        disabled={loading || !newLimitSelection.vehicle_type_id}
-                                        className="w-full md:w-auto px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 disabled:opacity-50"
-                                    >
-                                        Add
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* List */}
-                            <div className="space-y-2">
-                                {adLimits.length === 0 ? (
-                                    <div className="text-center py-8 text-gray-400 italic">No ad limits configured.</div>
-                                ) : (
-                                    adLimits.map(limit => (
-                                        <div key={limit.id} className="flex items-center justify-between p-3 bg-white border rounded-xl hover:shadow-sm">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-green-50 text-green-600 rounded-lg">
-                                                    <ListChecks size={20} />
-                                                </div>
-                                                <div>
-                                                    <p className="font-bold text-gray-800">
-                                                        {limit.vehicle_types?.type_name || 'Vehicle'} Ad Limit
-                                                    </p>
-                                                    <p className="text-xs text-gray-500">Allows posting this type</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-4">
-                                                <span className="px-3 py-1 bg-gray-100 rounded-lg text-sm font-bold text-gray-700">
-                                                    {limit.is_unlimited ? 'UNLIMITED' : `Qty: ${limit.quantity}`}
-                                                </span>
-                                                <button
-                                                    onClick={() => handleDeleteAdLimit(limit.id)}
-                                                    className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-                    )}
+                    {/* Ad Limits Content (REMOVED) */}
 
                     {activeTab === 'items' && (
                         <div className="space-y-6">
@@ -485,19 +385,7 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
                                         </select>
                                     </div>
 
-                                    <div className="w-full md:w-48">
-                                        <label className="block text-xs font-semibold text-gray-500 mb-1">Limit to Vehicle Type</label>
-                                        <select
-                                            className="w-full border rounded-lg p-2"
-                                            value={newItemSelection.vehicle_type_id}
-                                            onChange={e => setNewItemSelection({ ...newItemSelection, vehicle_type_id: e.target.value })}
-                                        >
-                                            <option value="">Any / Not Applicable</option>
-                                            {vehicleTypes.map(t => (
-                                                <option key={t.id} value={t.id}>{t.type_name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                    {/* Vehicle Type Selection (REMOVED) */}
 
                                     <div className="w-full md:w-24">
                                         <label className="block text-xs font-semibold text-gray-500 mb-1">Qty</label>
@@ -544,11 +432,6 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
                                                 <div>
                                                     <p className="font-bold text-gray-800 flex items-center gap-2">
                                                         {item.price_items?.name}
-                                                        {item.vehicle_types?.type_name && (
-                                                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded border">
-                                                                For {item.vehicle_types.type_name}
-                                                            </span>
-                                                        )}
                                                     </p>
                                                     <p className="text-xs text-gray-500">{item.price_items?.item_type}</p>
                                                 </div>
