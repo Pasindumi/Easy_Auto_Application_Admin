@@ -49,8 +49,16 @@ export const dashApi = {
 
 // Ads API
 export const adsApi = {
-    getAll: (status) => api.get(status ? `/cars/admin/all?status=${status}` : '/cars/admin/all'),
+    getAll: (params = {}) => {
+        const { status, page = 1, limit = 20, search = '' } = params;
+        let url = `/cars/admin/all?page=${page}&limit=${limit}`;
+        if (status) url += `&status=${status}`;
+        if (search) url += `&search=${search}`;
+        return api.get(url);
+    },
     updateStatus: (id, data) => api.put(`/cars/admin/${id}/status`, data),
+    banAd: (id, data) => api.put(`/cars/admin/${id}/ban`, data),
+    unbanAd: (id) => api.put(`/cars/admin/${id}/unban`),
 };
 
 // Vehicle Config API
@@ -111,6 +119,15 @@ export const discountsApi = {
     create: (data) => api.post('/discounts', data),
     update: (id, data) => api.put(`/discounts/${id}`, data),
     delete: (id) => api.delete(`/discounts/${id}`),
+};
+
+// Announcements API
+export const announcementsApi = {
+    getAll: () => api.get('/announcements'),
+    getActive: () => api.get('/announcements/active'),
+    create: (data) => api.post('/announcements', data),
+    update: (id, data) => api.put(`/announcements/${id}`, data),
+    delete: (id) => api.delete(`/announcements/${id}`),
 };
 
 // Reports API

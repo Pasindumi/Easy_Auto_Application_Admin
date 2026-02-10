@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { adsApi } from '../../api';
-import { 
-    CheckCircle, 
-    XCircle, 
-    Clock, 
-    Eye, 
-    X, 
-    Filter, 
-    MoreHorizontal, 
-    AlertTriangle, 
+import {
+    CheckCircle,
+    XCircle,
+    Clock,
+    Eye,
+    X,
+    Filter,
+    MoreHorizontal,
+    AlertTriangle,
     Search,
     Car,
     User,
@@ -25,36 +25,51 @@ export default function Ads() {
     const [filter, setFilter] = useState('');
     const [selectedAd, setSelectedAd] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [pagination, setPagination] = useState({
+        page: 1,
+        limit: 10,
+        total: 0,
+        pages: 0
+    });
+    const [showBanModal, setShowBanModal] = useState(false);
+    const [banDuration, setBanDuration] = useState('24');
+    const [banReason, setBanReason] = useState('');
+    const [actionLoading, setActionLoading] = useState(false);
 
     const fetchAds = async () => {
         setLoading(true);
         console.log("🚀 Starting fetchAds...");
         try {
-            console.log("📡 Requesting: ", "/cars/admin/all");
-            const res = await adsApi.getAll(filter);
+            console.log("📡 Requesting: ", "/cars/admin/all", { filter, page: pagination.page, search: debouncedSearch });
+            const res = await adsApi.getAll({
+                status: filter,
+                page: pagination.page,
+                limit: pagination.limit,
+                search: debouncedSearch
+            });
             console.log("✅ Response Status:", res.status);
-            console.log("📦 Response Data:", res.data);
 
-            // Robust data extraction
             const payload = res.data;
             let data = [];
-            
-            if (Array.isArray(payload)) {
-                data = payload;
-            } else if (payload?.data && Array.isArray(payload.data)) {
-                data = payload.data;
-            } else if (payload?.success && Array.isArray(payload.data)) {
-                 data = payload.data;
-            }
+            let paginfo = { total: 0, pages: 0, page: 1, limit: 10 };
 
-            console.log("📊 Extracted Data Length:", data.length);
-            
-            if (data.length === 0) {
-                 // Try alternative endpoint if first one returns empty/error (just in case)
-                 console.warn("⚠️ Data is empty. Checking alternative endpoint...");
+            if (payload?.success) {
+                data = payload.data || [];
+                if (payload.pagination) {
+                    paginfo = payload.pagination;
+                }
+            } else if (Array.isArray(payload)) {
+                data = payload;
             }
 
             setAds(data);
+            setPagination(prev => ({
+                ...prev,
+                total: paginfo.total || data.length,
+                pages: paginfo.pages || 1,
+                page: paginfo.page || prev.page
+            }));
 
         } catch (error) {
             console.error("❌ Error fetching ads:", error);
@@ -62,7 +77,7 @@ export default function Ads() {
                 console.error("❌ Error Response:", error.response.status, error.response.data);
                 alert(`Connection Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
             } else {
-                 alert(`Network Error: ${error.message}`);
+                alert(`Network Error: ${error.message}`);
             }
             setAds([]);
         } finally {
@@ -71,8 +86,16 @@ export default function Ads() {
     };
 
     useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+            setPagination(prev => ({ ...prev, page: 1 })); // Reset to first page on search
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    useEffect(() => {
         fetchAds();
-    }, [filter]);
+    }, [filter, pagination.page, debouncedSearch]);
 
     const updateStatus = async (id, status) => {
         try {
@@ -85,6 +108,40 @@ export default function Ads() {
         }
     };
 
+    const handleBanAd = async () => {
+        if (!selectedAd) return;
+        setActionLoading(true);
+        try {
+            await adsApi.banAd(selectedAd.id, {
+                durationHours: banDuration,
+                reason: banReason
+            });
+            setShowBanModal(false);
+            setBanReason('');
+            setSelectedAd(null);
+            fetchAds();
+        } catch (error) {
+            console.error("Failed to ban ad", error);
+            alert("Failed to ban ad. Please try again.");
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleUnbanAd = async (id) => {
+        setActionLoading(true);
+        try {
+            await adsApi.unbanAd(id);
+            setSelectedAd(null);
+            fetchAds();
+        } catch (error) {
+            console.error("Failed to unban ad", error);
+            alert("Failed to unban ad. Please try again.");
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const StatusBadge = ({ status }) => {
         const safeStatus = status || 'PENDING';
         const styles = {
@@ -93,16 +150,18 @@ export default function Ads() {
             DRAFT: 'bg-gray-50 text-gray-600 border-gray-200',
             SOLD: 'bg-indigo-50 text-indigo-700 border-indigo-200',
             EXPIRED: 'bg-red-50 text-red-700 border-red-200',
-            REJECTED: 'bg-red-50 text-red-700 border-red-200'
+            REJECTED: 'bg-red-50 text-red-700 border-red-200',
+            BANNED: 'bg-gray-900 text-white border-gray-900'
         };
-        
+
         const icons = {
             ACTIVE: <CheckCircle size={12} />,
             PENDING: <Clock size={12} />,
             DRAFT: <MoreHorizontal size={12} />,
             SOLD: <DollarSign size={12} />,
             EXPIRED: <AlertTriangle size={12} />,
-            REJECTED: <XCircle size={12} />
+            REJECTED: <XCircle size={12} />,
+            BANNED: <XCircle size={12} />
         };
 
         return (
@@ -113,12 +172,6 @@ export default function Ads() {
         );
     };
 
-    // Filter displayed ads based on search
-    const filteredAds = ads.filter(ad => 
-        ad?.title?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
-        ad?.seller?.email?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
-        ad?.id?.toString().includes(searchTerm)
-    );
 
     // Columns config for DataTable
     const columns = [
@@ -131,10 +184,10 @@ export default function Ads() {
                     <div className="flex items-center gap-4">
                         <div className="w-16 h-12 rounded-lg bg-gray-100 overflow-hidden border border-gray-200 shadow-sm flex-shrink-0">
                             {ad.AdImage && ad.AdImage[0] ? (
-                                <img 
-                                    src={ad.AdImage[0].image_url} 
-                                    className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-500" 
-                                    alt={ad.title} 
+                                <img
+                                    src={ad.AdImage[0].image_url}
+                                    className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-500"
+                                    alt={ad.title}
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -215,8 +268,8 @@ export default function Ads() {
 
     return (
         <div className="space-y-6">
-            <PageHeader 
-                title="Listing Management" 
+            <PageHeader
+                title="Listing Management"
                 subtitle="Review, approve, and manage vehicle advertisements."
                 breadcrumbs={['Dashboard', 'Ads']}
                 actions={
@@ -225,11 +278,10 @@ export default function Ads() {
                             <button
                                 key={s}
                                 onClick={() => setFilter(s)}
-                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${
-                                    filter === s 
-                                        ? 'bg-primary text-white shadow-md shadow-primary/30' 
-                                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                                }`}
+                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${filter === s
+                                    ? 'bg-primary text-white shadow-md shadow-primary/30'
+                                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                                    }`}
                             >
                                 {s || 'ALL'}
                             </button>
@@ -238,12 +290,19 @@ export default function Ads() {
                 }
             />
 
-            <DataTable 
+            <DataTable
                 columns={columns}
-                data={filteredAds}
+                data={ads}
                 loading={loading}
                 onSearch={setSearchTerm}
                 searchPlaceholder="Search by vehicle, seller email, or ID..."
+                pagination={{
+                    page: pagination.page,
+                    limit: pagination.limit,
+                    total: pagination.total,
+                    pages: pagination.pages,
+                    onPageChange: (p) => setPagination(prev => ({ ...prev, page: p }))
+                }}
                 emptyState={{
                     title: "No listings found",
                     description: filter ? `No ads found with status "${filter}"` : "Try adjusting your search terms."
@@ -260,7 +319,7 @@ export default function Ads() {
                                 <h2 className="text-2xl font-black text-gray-900">Review Listing</h2>
                                 <p className="text-sm text-gray-500 font-mono">ID: {selectedAd.id}</p>
                             </div>
-                            <button 
+                            <button
                                 onClick={() => setSelectedAd(null)}
                                 className="p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
                             >
@@ -273,10 +332,10 @@ export default function Ads() {
                             <div className="relative aspect-video bg-gray-100 rounded-2xl overflow-hidden border border-gray-200 shadow-inner group">
                                 {selectedAd.AdImage && selectedAd.AdImage.length > 0 ? (
                                     <>
-                                        <img 
-                                            src={selectedAd.AdImage[0].image_url} 
-                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                                            alt={selectedAd.title} 
+                                        <img
+                                            src={selectedAd.AdImage[0].image_url}
+                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                            alt={selectedAd.title}
                                         />
                                         <div className="absolute bottom-4 right-4 bg-black/50 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-bold">
                                             1 / {selectedAd.AdImage.length}
@@ -350,6 +409,28 @@ export default function Ads() {
                                                         </div>
                                                     </div>
                                                 ))}
+                                            </div>
+                                        </section>
+                                    )}
+
+                                    {/* Ad Ban Info */}
+                                    {selectedAd.is_banned && (
+                                        <section className="bg-red-50 p-5 rounded-2xl border border-red-200">
+                                            <h3 className="text-sm font-bold text-red-800 mb-4 flex items-center gap-2">
+                                                <AlertTriangle size={16} />
+                                                Banned Information
+                                            </h3>
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <p className="text-xs text-red-500 font-bold uppercase tracking-wider mb-1">Reason</p>
+                                                    <p className="text-sm text-gray-900 font-medium">{selectedAd.ban_reason}</p>
+                                                </div>
+                                                {selectedAd.ban_expires_at && (
+                                                    <div>
+                                                        <p className="text-xs text-red-500 font-bold uppercase tracking-wider mb-1">Expires At</p>
+                                                        <p className="text-sm text-gray-900 font-medium">{new Date(selectedAd.ban_expires_at).toLocaleString()}</p>
+                                                    </div>
+                                                )}
                                             </div>
                                         </section>
                                     )}
@@ -434,15 +515,34 @@ export default function Ads() {
                                 </>
                             )}
                             {selectedAd.status === 'ACTIVE' && (
+                                <>
+                                    <button
+                                        onClick={() => setShowBanModal(true)}
+                                        className="px-6 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-all flex items-center gap-2 shadow-lg shadow-red-500/20"
+                                    >
+                                        <AlertTriangle size={18} />
+                                        Ban Listing
+                                    </button>
+                                    <button
+                                        onClick={() => updateStatus(selectedAd.id, 'EXPIRED')}
+                                        className="px-6 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-all flex items-center gap-2"
+                                    >
+                                        <Clock size={18} />
+                                        Mark as Expired
+                                    </button>
+                                </>
+                            )}
+                            {selectedAd.status === 'BANNED' && (
                                 <button
-                                    onClick={() => updateStatus(selectedAd.id, 'EXPIRED')}
-                                    className="px-6 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-all flex items-center gap-2"
+                                    onClick={() => handleUnbanAd(selectedAd.id)}
+                                    disabled={actionLoading}
+                                    className="px-6 py-3 bg-green-50 text-green-600 font-bold rounded-xl hover:bg-green-100 transition-all border border-green-100 flex items-center gap-2 disabled:opacity-50"
                                 >
-                                    <Clock size={18} />
-                                    Mark as Expired
+                                    <CheckCircle size={18} />
+                                    {actionLoading ? 'Unbanning...' : 'Unban Listing'}
                                 </button>
                             )}
-                             {selectedAd.status === 'REJECTED' && (
+                            {selectedAd.status === 'REJECTED' && (
                                 <button
                                     onClick={() => updateStatus(selectedAd.id, 'PENDING')}
                                     className="px-6 py-3 bg-blue-50 text-blue-600 font-bold rounded-xl hover:bg-blue-100 transition-all border border-blue-100 flex items-center gap-2"
@@ -468,6 +568,65 @@ export default function Ads() {
                     to { transform: translateX(0); }
                 }
             `}</style>
+
+            {/* Ban Duration/Reason Modal */}
+            {showBanModal && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                            <h3 className="text-xl font-black text-gray-900">Ban Advertisement</h3>
+                            <button onClick={() => setShowBanModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-5">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Ban Duration</label>
+                                <select
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 transition-all"
+                                    value={banDuration}
+                                    onChange={(e) => setBanDuration(e.target.value)}
+                                >
+                                    <option value="24">24 Hours (1 Day)</option>
+                                    <option value="48">48 Hours (2 Days)</option>
+                                    <option value="72">72 Hours (3 Days)</option>
+                                    <option value="168">1 Week</option>
+                                    <option value="720">1 Month</option>
+                                    <option value="8760">1 Year</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Reason for Banning</label>
+                                <textarea
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-900 min-h-[120px] focus:ring-2 focus:ring-primary/20 transition-all"
+                                    placeholder="Enter detailed reason for the seller..."
+                                    value={banReason}
+                                    onChange={(e) => setBanReason(e.target.value)}
+                                />
+                                <p className="text-[10px] text-gray-400 mt-2 font-medium italic">This reason will be visible to the seller in their "My Ads" panel.</p>
+                            </div>
+                        </div>
+
+                        <div className="p-6 bg-gray-50/50 border-t border-gray-100 flex gap-3">
+                            <button
+                                onClick={() => setShowBanModal(false)}
+                                className="flex-1 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-white hover:text-gray-900 rounded-xl transition-all border border-transparent hover:border-gray-200"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleBanAd}
+                                disabled={actionLoading || !banReason.trim()}
+                                className="flex-1 px-4 py-3 bg-red-600 text-white text-sm font-bold rounded-xl hover:bg-red-700 shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:shadow-none transition-all flex items-center justify-center gap-2"
+                            >
+                                {actionLoading ? 'Banning...' : 'Confirm Ban'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
