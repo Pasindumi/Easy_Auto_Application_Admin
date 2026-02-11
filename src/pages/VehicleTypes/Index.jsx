@@ -65,6 +65,21 @@ export default function VehicleTypes() {
         }
     };
 
+    const handleDelete = async (id, name) => {
+        if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
+
+        try {
+            const token = localStorage.getItem('adminToken');
+            await axios.delete(`http://localhost:5000/api/vehicle-config/types/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            fetchTypes();
+        } catch (error) {
+            console.error('Error deleting type:', error);
+            alert(error.response?.data?.message || 'Failed to delete type');
+        }
+    };
+
     // Calculate stats
     const totalTypes = types.length;
     const activeTypes = types.filter(t => t.status === 'ACTIVE').length;
@@ -72,8 +87,8 @@ export default function VehicleTypes() {
 
     return (
         <div className="space-y-6">
-            <PageHeader 
-                title="Vehicle Configuration" 
+            <PageHeader
+                title="Vehicle Configuration"
                 subtitle="Manage vehicle types, brands, and attributes."
                 breadcrumbs={['Dashboard', 'Settings', 'Vehicle Types']}
                 actions={
@@ -129,7 +144,7 @@ export default function VehicleTypes() {
                     <h3 className="text-lg font-bold text-gray-900">All Vehicle Types</h3>
                     <p className="text-sm text-gray-500"> manage categories like Cars, Bikes, Vans etc.</p>
                 </div>
-                
+
                 {loading ? (
                     <div className="p-12 text-center">
                         <div className="w-12 h-12 border-4 border-gray-200 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
@@ -140,11 +155,10 @@ export default function VehicleTypes() {
                         {types.map((type, index) => (
                             <div key={type.id} className="p-6 flex items-center justify-between hover:bg-gray-50/50 transition-colors group">
                                 <div className="flex items-center gap-4">
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl ${
-                                        index % 3 === 0 ? 'bg-blue-100 text-blue-600' :
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl ${index % 3 === 0 ? 'bg-blue-100 text-blue-600' :
                                         index % 3 === 1 ? 'bg-purple-100 text-purple-600' :
-                                        'bg-orange-100 text-orange-600'
-                                    }`}>
+                                            'bg-orange-100 text-orange-600'
+                                        }`}>
                                         {type.type_name.charAt(0)}
                                     </div>
                                     <div>
@@ -152,11 +166,10 @@ export default function VehicleTypes() {
                                             {type.type_name}
                                         </h4>
                                         <div className="flex items-center gap-2 mt-1">
-                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                                                type.status === 'ACTIVE' 
-                                                    ? 'bg-green-50 text-green-700 border border-green-200' 
-                                                    : 'bg-red-50 text-red-700 border border-red-200'
-                                            }`}>
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${type.status === 'ACTIVE'
+                                                ? 'bg-green-50 text-green-700 border border-green-200'
+                                                : 'bg-red-50 text-red-700 border border-red-200'
+                                                }`}>
                                                 {type.status}
                                             </span>
                                             <span className="text-xs text-gray-400">• ID: {type.id.substring(0, 8)}...</span>
@@ -167,16 +180,23 @@ export default function VehicleTypes() {
                                 <div className="flex items-center gap-3 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
                                         onClick={() => toggleStatus(type.id, type.status)}
-                                        className={`p-2 rounded-xl transition-all ${
-                                            type.status === 'ACTIVE' 
-                                                ? 'bg-red-50 text-red-600 hover:bg-red-100' 
-                                                : 'bg-green-50 text-green-600 hover:bg-green-100'
-                                        }`}
+                                        className={`p-2 rounded-xl transition-all ${type.status === 'ACTIVE'
+                                            ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                                            : 'bg-green-50 text-green-600 hover:bg-green-100'
+                                            }`}
                                         title={type.status === 'ACTIVE' ? 'Disable' : 'Enable'}
                                     >
                                         {type.status === 'ACTIVE' ? <X size={18} /> : <Check size={18} />}
                                     </button>
-                                    
+
+                                    <button
+                                        onClick={() => handleDelete(type.id, type.type_name)}
+                                        className="p-2 rounded-xl transition-all bg-red-50 text-red-600 hover:bg-red-100"
+                                        title="Delete"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+
                                     <button
                                         onClick={() => navigate(`/vehicle-types/${type.id}`)}
                                         className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all"
@@ -188,7 +208,7 @@ export default function VehicleTypes() {
                                 </div>
                             </div>
                         ))}
-                        
+
                         {types.length === 0 && (
                             <div className="p-12 text-center text-gray-500">
                                 <Activity size={48} className="mx-auto text-gray-300 mb-4" />
@@ -211,7 +231,7 @@ export default function VehicleTypes() {
                             <h3 className="text-2xl font-black text-gray-900">Add Vehicle Type</h3>
                             <p className="text-gray-500 mt-1">Create a new category for listings</p>
                         </div>
-                        
+
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 mb-2">Type Name</label>
@@ -223,16 +243,16 @@ export default function VehicleTypes() {
                                     autoFocus
                                 />
                             </div>
-                            
+
                             <div className="flex gap-3 mt-8">
-                                <button 
-                                    onClick={() => setShowModal(false)} 
+                                <button
+                                    onClick={() => setShowModal(false)}
                                     className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors"
                                 >
                                     Cancel
                                 </button>
-                                <button 
-                                    onClick={handleCreate} 
+                                <button
+                                    onClick={handleCreate}
                                     disabled={!newTypeName || refreshing}
                                     className="flex-1 py-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
