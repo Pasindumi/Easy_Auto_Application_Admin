@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Change this to your ngrok URL if testing remotely
-export const API_BASE_URL = 'http://localhost:5000';
+// Use environment variable for API base URL, fallback to localhost for development
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 const api = axios.create({
     baseURL: `${API_BASE_URL}/api`,
@@ -76,6 +76,10 @@ export const configApi = {
     addAttribute: (data) => api.post('/vehicle-config/attributes', data),
     addModel: (data) => api.post('/vehicle-config/models', data),
     addCondition: (data) => api.post('/vehicle-config/conditions', data),
+
+    deleteBrand: (id) => api.delete(`/vehicle-config/brands/${id}`),
+    deleteAttribute: (id) => api.delete(`/vehicle-config/attributes/${id}`),
+    deleteModel: (id) => api.delete(`/vehicle-config/models/${id}`),
     deleteCondition: (id) => api.delete(`/vehicle-config/conditions/${id}`),
 };
 
@@ -147,6 +151,17 @@ export const boostApi = {
     getItems: () => api.get('/boosts/items'),
     getPackages: () => api.get('/boosts/packages'),
     apply: (data) => api.post('/boosts/apply', data),
+};
+
+// App Reviews API
+export const appReviewsApi = {
+    getAll: (params) => {
+        let url = '/app-reviews';
+        if (params?.rating) url += `?rating=${params.rating}`;
+        return api.get(url);
+    },
+    reply: (id, data) => api.post(`/app-reviews/${id}/reply`, data),
+    delete: (id) => api.delete(`/app-reviews/${id}/admin`),
 };
 
 export default api;

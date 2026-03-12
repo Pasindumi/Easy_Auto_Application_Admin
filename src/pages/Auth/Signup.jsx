@@ -38,8 +38,8 @@ export default function Signup() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center p-4 font-sans">
-            <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-white/50">
+        <div className="min-h-screen bg-admin-bg flex items-center justify-center p-4 font-sans">
+            <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-admin-border">
                 {/* Header */}
                 <div className="bg-primary p-8 text-center relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-full bg-white/5 opacity-30 pattern-grid-lg"></div>
@@ -134,7 +134,7 @@ export default function Signup() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 px-4 bg-primary hover:bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transition-all transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+                            className="w-full py-3 px-4 bg-primary hover:bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-primary/30 transition-all transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
                         >
                             {loading ? (
                                 <>

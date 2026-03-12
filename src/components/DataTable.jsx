@@ -12,9 +12,9 @@ export default function DataTable({
     emptyState = { title: "No items found", description: "Try changing your search query or add a new item." }
 }) {
     return (
-        <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden animate-slide-up">
+        <div className="bg-white rounded-3xl shadow-lg border border-admin-border overflow-hidden animate-slide-up">
             {/* Toolbar */}
-            <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="p-6 border-b border-admin-border flex flex-col sm:sm:row items-center justify-between gap-4">
                 <div className="relative w-full sm:w-72">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <input
@@ -47,7 +47,7 @@ export default function DataTable({
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody className="divide-y divide-admin-border">
                         {loading ? (
                             // Loading Skeletons
                             [...Array(5)].map((_, i) => (
@@ -93,7 +93,7 @@ export default function DataTable({
 
             {/* Pagination (Optional) */}
             {pagination && (
-                <div className="px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between bg-gray-50/30 gap-4">
+                <div className="px-6 py-4 border-t border-admin-border flex flex-col sm:sm:row items-center justify-between bg-admin-bg/30 gap-4">
                     <p className="text-sm text-gray-500 font-medium">
                         Showing <span className="font-bold text-gray-900">{Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}</span> to <span className="font-bold text-gray-900">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> of <span className="font-bold text-gray-900">{pagination.total}</span> items
                     </p>
@@ -122,8 +122,8 @@ export default function DataTable({
                                         onClick={() => pagination.onPageChange(pageNum)}
                                         disabled={loading}
                                         className={`w-9 h-9 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${pagination.page === pageNum
-                                                ? 'bg-primary text-white shadow-md shadow-primary/20'
-                                                : 'bg-white border border-gray-100 text-gray-500 hover:bg-gray-50'
+                                            ? 'bg-primary text-white shadow-md shadow-primary/20'
+                                            : 'bg-white border border-gray-100 text-gray-500 hover:bg-gray-50'
                                             }`}
                                     >
                                         {pageNum}

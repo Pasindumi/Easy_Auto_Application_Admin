@@ -178,7 +178,7 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
             <div className="bg-white rounded-2xl w-full max-w-3xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
 
                 {/* Header */}
-                <div className="p-6 border-b flex justify-between items-center bg-gray-50 shrink-0">
+                <div className="p-6 border-b border-admin-border flex justify-between items-center bg-admin-bg shrink-0">
                     <div>
                         <h2 className="text-xl font-bold text-gray-900">
                             {packageItem?.item_type === 'BOOST_PACKAGE' ? 'Manage Boost Package' : 'Manage Package'}
@@ -191,7 +191,7 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
                 </div>
 
                 {/* Tabs */}
-                <div className="flex border-b shrink-0 bg-gray-50/50">
+                <div className="flex border-b border-admin-border shrink-0 bg-admin-bg/50">
                     <button
                         onClick={() => setActiveTab('config')}
                         className={`flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-2 border-b-2 transition-colors ${activeTab === 'config' ? 'border-primary text-primary bg-blue-50' : 'border-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
@@ -201,7 +201,7 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
                     {/* Ad Limits Tab (REMOVED) */}
                     <button
                         onClick={() => setActiveTab('items')}
-                        className={`flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-2 border-b-2 transition-colors ${activeTab === 'items' ? 'border-primary text-primary bg-blue-50' : 'border-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
+                        className={`flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-2 border-b-2 transition-colors ${activeTab === 'items' ? 'border-primary text-primary bg-admin-bg' : 'border-transparent text-gray-500 hover:bg-admin-bg/50 hover:text-gray-700'}`}
                     >
                         <Layers size={16} /> Included Items
                     </button>
@@ -424,7 +424,7 @@ const ManagePackageModal = ({ isOpen, onClose, packageItem, allItems }) => {
                                     <div className="text-center py-8 text-gray-400 italic">No items included in this package yet.</div>
                                 ) : (
                                     includedItems.map(item => (
-                                        <div key={item.id} className="flex items-center justify-between p-3 bg-white border rounded-xl hover:shadow-sm">
+                                        <div key={item.id} className="flex items-center justify-between p-3 bg-white border border-admin-border rounded-xl hover:shadow-sm">
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                                                     <Box size={20} />

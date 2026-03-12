@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { 
-    User, 
-    Mail, 
-    Shield, 
-    Bell, 
-    Key, 
-    Camera, 
+import {
+    User,
+    Mail,
+    Shield,
+    Bell,
+    Key,
+    Camera,
     LogOut,
     CheckCircle2,
     Save,
@@ -78,8 +78,8 @@ export default function ProfilePage() {
 
     return (
         <div className="space-y-6 pb-20">
-            <PageHeader 
-                title="My Profile" 
+            <PageHeader
+                title="My Profile"
                 subtitle="Manage your account settings and preferences."
                 breadcrumbs={['Dashboard', 'Profile']}
             />
@@ -87,7 +87,7 @@ export default function ProfilePage() {
             {/* Profile Header */}
             <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden relative animate-slide-up">
                 {/* Cover Photo */}
-                <div className="h-48 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 relative">
+                <div className="h-48 bg-gradient-to-r from-primary via-blue-600 to-secondary relative">
                     <div className="absolute inset-0 bg-black/10"></div>
                     <button className="absolute bottom-4 right-4 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-all">
                         <Camera size={16} /> Change Cover
@@ -100,7 +100,7 @@ export default function ProfilePage() {
                         {/* Avatar */}
                         <div className="relative group">
                             <div className="w-32 h-32 rounded-3xl bg-white p-1.5 shadow-xl rotate-3 transition-transform group-hover:rotate-0">
-                                <div className="w-full h-full rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden border border-gray-100 relative">
+                                <div className="w-full h-full rounded-2xl bg-admin-bg flex items-center justify-center overflow-hidden border border-admin-border relative">
                                     <span className="text-4xl font-bold text-gray-400 select-none">
                                         {(formData.name.charAt(0) || 'A').toUpperCase()}
                                     </span>
@@ -117,7 +117,7 @@ export default function ProfilePage() {
                         <div className="flex-1 pt-14 md:pt-0">
                             <h1 className="text-3xl font-black text-gray-900 mb-1">{formData.name}</h1>
                             <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-gray-500">
-                                <span className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1 rounded-lg border border-blue-100">
+                                <span className="flex items-center gap-1.5 bg-admin-bg text-primary px-3 py-1 rounded-lg border border-admin-border">
                                     <Shield size={14} /> {admin?.role || 'Administrator'}
                                 </span>
                                 <span className="flex items-center gap-1.5">
@@ -146,8 +146,8 @@ export default function ProfilePage() {
                                 className={clsx(
                                     "px-6 py-4 text-sm font-bold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap",
                                     activeTab === tab.id
-                                        ? "border-primary text-primary"
-                                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200"
+                                        ? "border-primary text-primary bg-admin-bg/50"
+                                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-admin-border"
                                 )}
                             >
                                 <tab.icon size={18} />
@@ -162,7 +162,7 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Content Column */}
                 <div className="lg:col-span-2 space-y-8 animate-slide-up" style={{ animationDelay: '100ms' }}>
-                    
+
                     {/* OVERVIEW TAB */}
                     {activeTab === 'overview' && (
                         <form onSubmit={handleUpdateProfile} className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8">
@@ -172,16 +172,16 @@ export default function ProfilePage() {
                                     {loading ? 'Saving...' : <><Save size={18} /> Save Changes</>}
                                 </button>
                             </div>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-2">Full Name</label>
                                     <div className="relative">
                                         <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             value={formData.name}
-                                            onChange={e => setFormData({...formData, name: e.target.value})}
+                                            onChange={e => setFormData({ ...formData, name: e.target.value })}
                                             className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium"
                                         />
                                     </div>
@@ -190,8 +190,8 @@ export default function ProfilePage() {
                                     <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                        <input 
-                                            type="email" 
+                                        <input
+                                            type="email"
                                             value={formData.email}
                                             readOnly
                                             className="w-full pl-10 pr-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 cursor-not-allowed font-medium"
@@ -202,10 +202,10 @@ export default function ProfilePage() {
                                     <label className="block text-sm font-bold text-gray-700 mb-2">Phone Number</label>
                                     <div className="relative">
                                         <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                        <input 
-                                            type="tel" 
+                                        <input
+                                            type="tel"
                                             value={formData.phone}
-                                            onChange={e => setFormData({...formData, phone: e.target.value})}
+                                            onChange={e => setFormData({ ...formData, phone: e.target.value })}
                                             className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium"
                                         />
                                     </div>
@@ -214,20 +214,20 @@ export default function ProfilePage() {
                                     <label className="block text-sm font-bold text-gray-700 mb-2">Location</label>
                                     <div className="relative">
                                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             value={formData.location}
-                                            onChange={e => setFormData({...formData, location: e.target.value})}
+                                            onChange={e => setFormData({ ...formData, location: e.target.value })}
                                             className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium"
                                         />
                                     </div>
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-bold text-gray-700 mb-2">Bio</label>
-                                    <textarea 
+                                    <textarea
                                         rows="4"
                                         value={formData.bio}
-                                        onChange={e => setFormData({...formData, bio: e.target.value})}
+                                        onChange={e => setFormData({ ...formData, bio: e.target.value })}
                                         className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium resize-none"
                                         placeholder="Write something about yourself..."
                                     ></textarea>
@@ -244,7 +244,7 @@ export default function ProfilePage() {
                                     <h2 className="text-xl font-bold text-gray-900">Security Settings</h2>
                                     <p className="text-sm text-gray-500">Update your password and security preferences.</p>
                                 </div>
-                                <button type="submit" disabled={loading} className="px-5 py-2.5 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-all shadow-lg flex items-center gap-2">
+                                <button type="submit" disabled={loading} className="px-5 py-2.5 bg-primary text-white rounded-xl font-bold hover:bg-blue-600 transition-all shadow-lg flex items-center gap-2">
                                     {loading ? 'Updating...' : 'Update Password'}
                                 </button>
                             </div>
@@ -254,10 +254,10 @@ export default function ProfilePage() {
                                     <label className="block text-sm font-bold text-gray-700 mb-2">Current Password</label>
                                     <div className="relative">
                                         <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                        <input 
+                                        <input
                                             type="password"
                                             value={formData.currentPassword}
-                                            onChange={e => setFormData({...formData, currentPassword: e.target.value})}
+                                            onChange={e => setFormData({ ...formData, currentPassword: e.target.value })}
                                             className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-200 focus:border-gray-400 outline-none transition-all font-medium"
                                             placeholder="••••••••"
                                         />
@@ -266,20 +266,20 @@ export default function ProfilePage() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">New Password</label>
-                                        <input 
+                                        <input
                                             type="password"
                                             value={formData.newPassword}
-                                            onChange={e => setFormData({...formData, newPassword: e.target.value})}
+                                            onChange={e => setFormData({ ...formData, newPassword: e.target.value })}
                                             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium"
                                             placeholder="••••••••"
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Confirm Password</label>
-                                        <input 
+                                        <input
                                             type="password"
                                             value={formData.confirmPassword}
-                                            onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
+                                            onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })}
                                             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium"
                                             placeholder="••••••••"
                                         />
@@ -293,7 +293,7 @@ export default function ProfilePage() {
                     {activeTab === 'notifications' && (
                         <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8">
                             <h2 className="text-xl font-bold text-gray-900 mb-8">Notification Preferences</h2>
-                            
+
                             <div className="space-y-6">
                                 {[
                                     { id: 'email', label: 'Email Notifications', desc: 'Receive daily summaries and critical alerts.' },
@@ -306,7 +306,7 @@ export default function ProfilePage() {
                                             <p className="font-bold text-gray-800">{item.label}</p>
                                             <p className="text-sm text-gray-500">{item.desc}</p>
                                         </div>
-                                        <button 
+                                        <button
                                             onClick={() => toggleNotification(item.id)}
                                             className={clsx(
                                                 "relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none",
@@ -330,7 +330,7 @@ export default function ProfilePage() {
                     {/* Account Status Card */}
                     <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
-                        
+
                         <div className="flex items-center gap-3 mb-6 relative z-10">
                             <div className="p-2 bg-white/10 rounded-xl backdrop-blur-md">
                                 <Shield className="text-green-400" />
@@ -362,12 +362,12 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Quick Stats or Tips */}
-                    <div className="bg-blue-50 rounded-3xl p-6 border border-blue-100">
-                        <h3 className="font-bold text-blue-900 mb-2">Pro Tip</h3>
-                        <p className="text-sm text-blue-800/80 leading-relaxed mb-4">
+                    <div className="bg-admin-bg rounded-3xl p-6 border border-admin-border shadow-sm">
+                        <h3 className="font-bold text-primary mb-2">Pro Tip</h3>
+                        <p className="text-sm text-gray-700 leading-relaxed mb-4">
                             Enable Two-Factor Authentication (2FA) for enhanced security. Check the Security tab to get started.
                         </p>
-                        <button onClick={() => setActiveTab('security')} className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                        <button onClick={() => setActiveTab('security')} className="text-sm font-bold text-primary hover:text-blue-700 flex items-center gap-1">
                             Go to Security <span aria-hidden="true">&rarr;</span>
                         </button>
                     </div>

@@ -76,7 +76,7 @@ export default function Sidebar() {
                             "font-semibold tracking-wide whitespace-nowrap transition-all duration-300 origin-left",
                             isCollapsed
                                 ? "w-0 opacity-0 overflow-hidden scale-90 hidden md:block"
-                                : "hidden md:block w-auto opacity-100 scale-100" 
+                                : "hidden md:block w-auto opacity-100 scale-100"
                         )}
                     >
                         {item.name}
@@ -111,9 +111,9 @@ export default function Sidebar() {
             )}
         >
             {/* Header */}
-            <div className="h-20 flex items-center justify-between px-5 border-b border-gray-50 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+            <div className="h-20 flex items-center justify-between px-5 border-b border-admin-border bg-white/80 backdrop-blur-sm sticky top-0 z-10">
                 <div className={clsx("flex items-center gap-3 transition-all duration-300", isCollapsed ? "justify-center w-full" : "")}>
-                    <div className="relative w-10 h-10 flex-shrink-0 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20 group cursor-pointer overflow-hidden">
+                    <div className="relative w-10 h-10 flex-shrink-0 bg-gradient-to-br from-primary to-blue-700 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20 group cursor-pointer overflow-hidden">
                         <span className="font-black text-lg tracking-tight">EA</span>
                         <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
@@ -166,12 +166,12 @@ export default function Sidebar() {
                     "flex items-center gap-1 p-1 rounded-xl transition-all duration-300",
                     isCollapsed ? "justify-center flex-col" : "bg-white border border-gray-100 shadow-sm"
                 )}>
-                    
-                    <Link 
+
+                    <Link
                         to="/profile"
                         className={clsx(
-                             "flex items-center gap-3 p-1.5 rounded-lg hover:bg-gray-50 transition-colors flex-1 min-w-0 group",
-                             isCollapsed && "justify-center p-0 hover:bg-transparent"
+                            "flex items-center gap-3 p-1.5 rounded-lg hover:bg-gray-50 transition-colors flex-1 min-w-0 group",
+                            isCollapsed && "justify-center p-0 hover:bg-transparent"
                         )}
                         title="View Profile"
                     >
@@ -197,17 +197,17 @@ export default function Sidebar() {
                         </button>
                     )}
                 </div>
-                 
-                 {/* Logout Button for Collapsed Mode (Desktop) and Mobile */}
-                 {isCollapsed && (
-                         <button 
-                            onClick={logout}
-                            className="w-full mt-3 p-2 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                            title="Sign Out"
-                        >
-                            <LogOut size={20} />
-                        </button>
-                    )}
+
+                {/* Logout Button for Collapsed Mode (Desktop) and Mobile */}
+                {isCollapsed && (
+                    <button
+                        onClick={logout}
+                        className="w-full mt-3 p-2 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                        title="Sign Out"
+                    >
+                        <LogOut size={20} />
+                    </button>
+                )}
             </div>
         </aside>
     );

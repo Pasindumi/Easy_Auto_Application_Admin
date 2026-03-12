@@ -176,6 +176,39 @@ export default function VehicleTypeDetails() {
         }
     };
 
+    const deleteBrand = async (brandId) => {
+        if (!window.confirm('Are you sure you want to delete this brand and all its models?')) return;
+        try {
+            await configApi.deleteBrand(brandId);
+            fetchDetails();
+        } catch (e) {
+            console.error('Error deleting brand:', e);
+            alert('Error deleting brand');
+        }
+    };
+
+    const deleteAttribute = async (attrId) => {
+        if (!window.confirm('Are you sure you want to delete this attribute?')) return;
+        try {
+            await configApi.deleteAttribute(attrId);
+            fetchDetails();
+        } catch (e) {
+            console.error('Error deleting attribute:', e);
+            alert('Error deleting attribute');
+        }
+    };
+
+    const deleteModel = async (modelId) => {
+        if (!window.confirm('Are you sure you want to delete this model?')) return;
+        try {
+            await configApi.deleteModel(modelId);
+            fetchDetails();
+        } catch (e) {
+            console.error('Error deleting model:', e);
+            alert('Error deleting model');
+        }
+    };
+
     if (!type && !loading) return <div className="p-8 text-center text-gray-500">Loading Configuration...</div>;
 
     const tabs = [
@@ -194,7 +227,7 @@ export default function VehicleTypeDetails() {
                 actions={
                     <button
                         onClick={() => navigate('/vehicle-types')}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-admin-border text-gray-700 font-bold rounded-xl hover:bg-admin-bg transition-colors"
                     >
                         <ArrowLeft size={18} /> Back
                     </button>
@@ -202,19 +235,19 @@ export default function VehicleTypeDetails() {
             />
 
             {/* Navigation Tabs */}
-            <div className="flex flex-wrap gap-2 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
+            <div className="flex flex-wrap gap-2 bg-white p-2 rounded-2xl shadow-sm border border-admin-border">
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-300 ${activeTab === tab.id
                             ? 'bg-primary text-white shadow-md shadow-primary/20 transform scale-[1.02]'
-                            : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                            : 'text-gray-500 hover:bg-admin-bg hover:text-primary'
                             }`}
                     >
                         {tab.icon}
                         {tab.label}
-                        <span className={`ml-1 text-xs px-2 py-0.5 rounded-full ${activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                        <span className={`ml-1 text-xs px-2 py-0.5 rounded-full ${activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-admin-bg text-primary'}`}>
                             {tab.count}
                         </span>
                     </button>
@@ -222,7 +255,7 @@ export default function VehicleTypeDetails() {
             </div>
 
             {/* Content Area */}
-            <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 min-h-[500px] animate-fade-in">
+            <div className="bg-white rounded-3xl shadow-lg border border-admin-border p-8 min-h-[500px] animate-fade-in">
 
                 {/* BRANDS TAB */}
                 {activeTab === 'brands' && (
@@ -283,24 +316,27 @@ export default function VehicleTypeDetails() {
                         <div className="lg:col-span-2">
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                 {brands.map(b => (
-                                    <div key={b.id} className="group relative bg-gray-50 rounded-2xl p-4 border border-gray-100 flex flex-col items-center text-center hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer" onClick={() => handleEditBrand(b)}>
+                                    <div key={b.id} className="group relative bg-admin-bg rounded-2xl p-4 border border-admin-border flex flex-col items-center text-center hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer" onClick={() => handleEditBrand(b)}>
                                         <div className="w-16 h-16 mb-3 flex items-center justify-center bg-white rounded-xl shadow-sm p-2">
                                             {b.brand_image ? (
                                                 <img src={b.brand_image} alt={b.brand_name} className="w-full h-full object-contain" />
                                             ) : (
-                                                <span className="text-2xl font-bold text-gray-300">{b.brand_name[0]}</span>
+                                                <span className="text-2xl font-bold text-primary/30">{b.brand_name[0]}</span>
                                             )}
                                         </div>
                                         <span className="text-sm font-bold text-gray-700 w-full truncate">{b.brand_name}</span>
-                                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
+                                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-2">
+                                            <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100" onClick={(e) => { e.stopPropagation(); handleEditBrand(b); }}>
                                                 <Edit2 size={12} />
+                                            </div>
+                                            <div className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100" onClick={(e) => { e.stopPropagation(); deleteBrand(b.id); }}>
+                                                <Trash2 size={12} />
                                             </div>
                                         </div>
                                     </div>
                                 ))}
                                 {brands.length === 0 && (
-                                    <div className="col-span-full py-12 text-center text-gray-400 bg-gray-50 rounded-2xl border-dashed border-2 border-gray-200">
+                                    <div className="col-span-full py-12 text-center text-gray-400 bg-admin-bg rounded-2xl border-dashed border-2 border-admin-border">
                                         No brands added yet. Start by adding one.
                                     </div>
                                 )}
@@ -366,7 +402,7 @@ export default function VehicleTypeDetails() {
                         {/* List */}
                         <div className="lg:col-span-2 space-y-3">
                             {attributes.map(a => (
-                                <div key={a.id} className="group flex justify-between items-center p-5 border border-gray-100 rounded-2xl bg-white hover:shadow-lg transition-all hover:border-purple-100">
+                                <div key={a.id} className="group flex justify-between items-center p-5 border border-admin-border rounded-2xl bg-white hover:shadow-lg transition-all hover:border-primary/30">
                                     <div className="flex items-center gap-4">
                                         <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 font-bold text-xs uppercase">
                                             {a.data_type.substring(0, 3)}
@@ -385,14 +421,17 @@ export default function VehicleTypeDetails() {
                                                 Required
                                             </span>
                                         )}
-                                        <button className="p-2 text-gray-300 hover:text-red-500 transition-colors">
+                                        <button
+                                            onClick={() => deleteAttribute(a.id)}
+                                            className="p-2 text-gray-300 hover:text-red-500 transition-colors"
+                                        >
                                             <Trash2 size={18} />
                                         </button>
                                     </div>
                                 </div>
                             ))}
                             {attributes.length === 0 && (
-                                <div className="py-12 text-center text-gray-400 bg-gray-50 rounded-3xl">
+                                <div className="py-12 text-center text-gray-400 bg-admin-bg rounded-3xl border border-admin-border border-dashed">
                                     No custom attributes defined.
                                 </div>
                             )}
@@ -403,7 +442,7 @@ export default function VehicleTypeDetails() {
                 {/* MODELS TAB */}
                 {activeTab === 'models' && (
                     <div className="space-y-6">
-                        <div className="flex flex-col sm:flex-row gap-4 bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                        <div className="flex flex-col sm:flex-row gap-4 bg-admin-bg p-6 rounded-2xl border border-admin-border">
                             <div className="flex-1 min-w-[200px]">
                                 <select
                                     className="w-full border border-gray-200 rounded-xl px-4 py-3 font-semibold focus:ring-2 focus:ring-primary/20"
@@ -435,12 +474,15 @@ export default function VehicleTypeDetails() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {models.map(m => (
-                                <div key={m.id} className="bg-white border border-gray-100 p-4 rounded-xl flex justify-between items-center hover:shadow-md transition-shadow group">
+                                <div key={m.id} className="bg-white border border-admin-border p-4 rounded-xl flex justify-between items-center hover:shadow-md transition-shadow group">
                                     <div>
                                         <p className="font-bold text-gray-900">{m.model_name}</p>
                                         <p className="text-xs font-bold text-primary uppercase tracking-wider mt-1">{m.vehicle_brands?.brand_name}</p>
                                     </div>
-                                    <button className="opacity-0 group-hover:opacity-100 p-2 text-gray-300 hover:text-red-500 transition-all">
+                                    <button
+                                        onClick={() => deleteModel(m.id)}
+                                        className="opacity-0 group-hover:opacity-100 p-2 text-gray-300 hover:text-red-500 transition-all"
+                                    >
                                         <Trash2 size={16} />
                                     </button>
                                 </div>
@@ -459,7 +501,7 @@ export default function VehicleTypeDetails() {
                     <div className="max-w-2xl mx-auto space-y-8 text-center">
                         <div className="flex gap-3">
                             <input
-                                className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-6 py-4 text-lg font-medium focus:ring-2 focus:ring-primary/20"
+                                className="flex-1 bg-admin-bg border border-admin-border rounded-xl px-6 py-4 text-lg font-medium focus:ring-2 focus:ring-primary/20"
                                 placeholder="Condition (e.g. Brand New)"
                                 value={newCondition}
                                 onChange={e => setNewCondition(e.target.value)}

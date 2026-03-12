@@ -39,10 +39,10 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 font-sans">
-            <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-white/50">
+        <div className="min-h-screen bg-admin-bg flex items-center justify-center p-4 font-sans">
+            <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-admin-border">
                 {/* Header */}
-                <div className="bg-blue-600 p-8 text-center relative overflow-hidden">
+                <div className="bg-primary p-8 text-center relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-full bg-white/5 opacity-30 pattern-grid-lg"></div>
                     <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm shadow-inner relative z-10">
                         <Shield className="text-white w-8 h-8" />
@@ -75,7 +75,7 @@ export default function Login() {
                                 <input
                                     type="email"
                                     required
-                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-gray-800"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
                                     placeholder="admin@easyauto.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -90,7 +90,7 @@ export default function Login() {
                                 <input
                                     type="password"
                                     required
-                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-gray-800"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -101,7 +101,7 @@ export default function Login() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transition-all transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full py-3 px-4 bg-primary hover:bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-primary/30 transition-all transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>
@@ -117,7 +117,7 @@ export default function Login() {
                     <div className="mt-6 text-center">
                         <p className="text-sm text-gray-600">
                             Need an account?{' '}
-                            <Link to="/signup" className="text-blue-600 font-bold hover:underline">
+                            <Link to="/signup" className="text-primary font-bold hover:underline">
                                 Create Admin
                             </Link>
                         </p>

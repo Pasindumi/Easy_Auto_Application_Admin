@@ -7,8 +7,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#235CF8',
-        secondary: '#032960',
+        primary: '#3B82F6',     // Blue 500
+        secondary: '#1E3A8A',   // Blue 900
+        'admin-bg': '#F0F9FF',  // Sky 50
+        'admin-border': '#DBEAFE', // Blue 100
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],

@@ -61,7 +61,7 @@ const PackageFeaturesModal = ({ isOpen, onClose, packageItem }) => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <div className="bg-white rounded-2xl w-full max-w-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
-                <div className="p-6 border-b flex justify-between items-center bg-gray-50">
+                <div className="p-6 border-b border-admin-border flex justify-between items-center bg-admin-bg">
                     <div>
                         <h2 className="text-xl font-bold text-gray-900">Manage Features</h2>
                         <p className="text-sm text-gray-500">For package: <span className="font-semibold text-primary">{packageItem?.name}</span></p>
@@ -120,7 +120,7 @@ const PackageFeaturesModal = ({ isOpen, onClose, packageItem }) => {
                             </div>
                         ) : (
                             features.map((feature) => (
-                                <div key={feature.id} className="flex items-center justify-between p-4 bg-white border rounded-xl hover:shadow-sm transition-shadow">
+                                <div key={feature.id} className="flex items-center justify-between p-4 bg-white border border-admin-border rounded-xl hover:shadow-sm transition-shadow">
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
                                         <div>
                                             <span className="text-xs text-gray-400 block">KEY</span>
@@ -147,7 +147,7 @@ const PackageFeaturesModal = ({ isOpen, onClose, packageItem }) => {
                     </div>
                 </div>
 
-                <div className="p-6 border-t bg-gray-50 flex justify-end">
+                <div className="p-6 border-t border-admin-border bg-admin-bg flex justify-end">
                     <button onClick={onClose} className="px-6 py-2 bg-white border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-100 transition-colors">
                         Done
                     </button>

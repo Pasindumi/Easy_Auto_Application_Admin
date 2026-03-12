@@ -22,17 +22,17 @@ import {
     DollarSign,
     ArrowRight
 } from 'lucide-react';
-import { 
-    Area, 
-    AreaChart, 
-    CartesianGrid, 
-    Cell, 
-    Pie, 
-    PieChart, 
-    ResponsiveContainer, 
-    Tooltip, 
-    XAxis, 
-    YAxis 
+import {
+    Area,
+    AreaChart,
+    CartesianGrid,
+    Cell,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis
 } from 'recharts';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
@@ -49,11 +49,11 @@ export default function Dashboard() {
         try {
             setRefreshing(true);
             setError(null);
-            
+
             // Parallel Fetching for performance
             const [statsRes, adsRes, usersRes] = await Promise.allSettled([
                 dashApi.getStats(),
-                adsApi.getAll(''), 
+                adsApi.getAll(''),
                 dashApi.getUsers()
             ]);
 
@@ -90,8 +90,8 @@ export default function Dashboard() {
                 const d = new Date();
                 d.setMonth(d.getMonth() - i);
                 const monthName = d.toLocaleString('default', { month: 'short' });
-                const monthKey = `${d.getFullYear()}-${d.getMonth()}`; 
-                
+                const monthKey = `${d.getFullYear()}-${d.getMonth()}`;
+
                 months.push({
                     month: monthName,
                     key: monthKey,
@@ -135,7 +135,7 @@ export default function Dashboard() {
                 ads: adStats,
                 vehicleTypes: platformStats.vehicleTypes || 0,
                 brands: platformStats.brands || 0,
-                users: usersList.length || 0 
+                users: usersList.length || 0
             });
             setMonthlyData(months);
             setRecentActivity(activity);
@@ -180,7 +180,7 @@ export default function Dashboard() {
             <div
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
-                className="group relative overflow-hidden bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-transparent hover:-translate-y-1 h-full flex flex-col justify-between"
+                className="group relative overflow-hidden bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 border border-admin-border hover:border-primary/20 hover:-translate-y-1 h-full flex flex-col justify-between"
             >
                 <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-[0.07] transition-opacity duration-500`}></div>
                 <div className={`absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br ${gradient} opacity-10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700`}></div>
@@ -191,9 +191,8 @@ export default function Dashboard() {
                             <div className="flex items-center gap-2 mb-1">
                                 <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">{title}</p>
                                 {trend && change && (
-                                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                                        trend === 'up' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
-                                    }`}>
+                                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${trend === 'up' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
+                                        }`}>
                                         {change}
                                     </span>
                                 )}
@@ -205,9 +204,9 @@ export default function Dashboard() {
                             <Icon className="w-7 h-7 text-white" />
                         </div>
                     </div>
-                    
+
                     {to && actionLabel && (
-                        <Link to={to} className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-xl transition-all border border-gray-100 group-hover:bg-white group-hover:shadow-sm">
+                        <Link to={to} className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-admin-bg hover:bg-admin-border text-primary text-xs font-bold rounded-xl transition-all border border-admin-border group-hover:bg-white group-hover:shadow-sm">
                             {actionLabel} <ArrowRight size={12} />
                         </Link>
                     )}
@@ -238,7 +237,7 @@ export default function Dashboard() {
 
     const ActivityItem = ({ activity }) => {
         const getIcon = (type) => {
-            switch(type) {
+            switch (type) {
                 case 'new': return <Plus className="w-4 h-4 text-white" />;
                 case 'approved': return <CheckCircle className="w-4 h-4 text-white" />;
                 case 'expired': return <Clock className="w-4 h-4 text-white" />;
@@ -246,7 +245,7 @@ export default function Dashboard() {
             }
         };
         const getStatusColor = (status) => {
-            switch(status) {
+            switch (status) {
                 case 'active': case 'approved': return 'bg-green-50 text-green-700 border-green-200';
                 case 'pending': return 'bg-amber-50 text-amber-700 border-amber-200';
                 case 'expired': return 'bg-gray-50 text-gray-700 border-gray-200';
@@ -271,11 +270,11 @@ export default function Dashboard() {
     };
 
     if (loading) return <div className="h-96 flex items-center justify-center"><LoadingSpinner size="lg" message="Loading Dashboard..." /></div>;
-    
+
     if (error) {
         return (
             <div className="min-h-96 flex items-center justify-center p-8">
-                 {/* Error State */}
+                {/* Error State */}
                 <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-red-100 p-8 text-center">
                     <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"><Server className="w-8 h-8 text-red-600" /></div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Sync Error</h3>
@@ -297,73 +296,73 @@ export default function Dashboard() {
     const successRate = stats.ads.total > 0 ? ((stats.ads.active / stats.ads.total) * 100).toFixed(1) : 0;
 
     return (
-         <div className="space-y-6 animate-fade-in pb-8">
+        <div className="space-y-6 animate-fade-in pb-8">
             {/* Header */}
-            <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6">
+            <div className="bg-white rounded-3xl shadow-lg border border-admin-border p-6">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                            <h1 className="text-3xl lg:text-4xl font-black bg-gradient-to-r from-gray-900 via-primary to-purple-600 bg-clip-text text-transparent">Dashboard</h1>
-                            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border bg-green-50 text-green-700 border-green-200">
+                            <h1 className="text-3xl lg:text-4xl font-black bg-gradient-to-r from-secondary via-primary to-blue-400 bg-clip-text text-transparent">Dashboard</h1>
+                            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border bg-admin-bg text-primary border-admin-border">
                                 <Activity className="w-3 h-3 animate-pulse-glow" /> Live
                             </span>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-gray-600">
-                            <span className="flex items-center gap-1.5"><Sparkles className="w-4 h-4 text-yellow-500" /> Real-time feed</span>
-                            <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> Updated {lastUpdated.toLocaleTimeString()}</span>
+                            <span className="flex items-center gap-1.5"><Sparkles className="w-4 h-4 text-primary" /> Real-time feed</span>
+                            <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-primary" /> Updated {lastUpdated.toLocaleTimeString()}</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <button onClick={loadDashboardData} disabled={refreshing} className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all duration-300 disabled:opacity-50">
+                        <button onClick={loadDashboardData} disabled={refreshing} className="flex items-center gap-2 px-5 py-2.5 bg-admin-bg hover:bg-admin-border text-primary font-semibold rounded-xl transition-all duration-300 disabled:opacity-50 border border-admin-border">
                             <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Refresh
                         </button>
-                        <button className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 text-white font-semibold rounded-xl shadow-lg transition-all"><Download size={16} /> Export</button>
+                        <button className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-blue-700 hover:from-primary/90 text-white font-semibold rounded-xl shadow-lg transition-all"><Download size={16} /> Export</button>
                     </div>
                 </div>
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <PremiumStatCard title="Total Listings" value={stats.ads.total} icon={Car} gradient="from-blue-500 to-blue-600" trend="up" change="+0%" description="All-time listings" to="/ads" actionLabel="View All" />
-                <PremiumStatCard title="Active Ads" value={stats.ads.active} icon={CheckCircle} gradient="from-green-500 to-emerald-600" trend="up" change={`${successRate}%`} description="Success Rate" to="/ads" actionLabel="Manage" />
-                <PremiumStatCard title="Pending Review" value={stats.ads.pending} icon={AlertTriangle} gradient="from-amber-500 to-orange-600" description="Needs attention" to="/ads" actionLabel="Review Now" />
-                <PremiumStatCard title="Completed" value={stats.ads.expired + stats.ads.sold} icon={XCircle} gradient="from-purple-500 to-purple-600" description="Sold or Expired" to="/ads" actionLabel="View History" />
+                <PremiumStatCard title="Total Listings" value={stats.ads.total} icon={Car} gradient="from-primary/80 to-primary" trend="up" change="+0%" description="All-time listings" to="/ads" actionLabel="View All" />
+                <PremiumStatCard title="Active Ads" value={stats.ads.active} icon={CheckCircle} gradient="from-primary/90 to-primary" trend="up" change={`${successRate}%`} description="Success Rate" to="/ads" actionLabel="Manage" />
+                <PremiumStatCard title="Pending Review" value={stats.ads.pending} icon={AlertTriangle} gradient="from-primary/70 to-primary/90" description="Needs attention" to="/ads" actionLabel="Review Now" />
+                <PremiumStatCard title="Completed" value={stats.ads.expired + stats.ads.sold} icon={XCircle} gradient="from-primary/60 to-primary/80" description="Sold or Expired" to="/ads" actionLabel="View History" />
             </div>
 
             {/* Charts & Activity */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                 {/* Quick Stats - Platform - Clickable */}
-                 <QuickStatsCard 
-                    title="Total Vehicles" 
-                    value={stats.vehicleTypes} 
-                    subtitle="Types Configured" 
-                    icon={Sparkles} 
-                    gradient="from-indigo-500 to-blue-600" 
-                    to="/vehicle-types" 
-                 />
-                 <QuickStatsCard 
-                    title="Total Brands" 
-                    value={stats.brands} 
-                    subtitle="Manufacturers" 
-                    icon={Car} 
-                    gradient="from-purple-500 to-pink-600" 
-                    to="/vehicle-types" 
-                 />
-                 <QuickStatsCard 
-                    title="Total Users" 
-                    value={stats.users} 
-                    subtitle="Registered Users" 
-                    icon={Users} 
-                    gradient="from-orange-500 to-orange-600" 
-                    to="/users" 
-                 />
+                {/* Quick Stats - Platform - Clickable */}
+                <QuickStatsCard
+                    title="Total Vehicles"
+                    value={stats.vehicleTypes}
+                    subtitle="Types Configured"
+                    icon={Sparkles}
+                    gradient="from-primary to-blue-600"
+                    to="/vehicle-types"
+                />
+                <QuickStatsCard
+                    title="Total Brands"
+                    value={stats.brands}
+                    subtitle="Manufacturers"
+                    icon={Car}
+                    gradient="from-blue-600 to-blue-700"
+                    to="/vehicle-types"
+                />
+                <QuickStatsCard
+                    title="Total Users"
+                    value={stats.users}
+                    subtitle="Registered Users"
+                    icon={Users}
+                    gradient="from-blue-700 to-secondary"
+                    to="/users"
+                />
             </div>
 
             {/* Main Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-white rounded-3xl shadow-lg border border-gray-100 p-6">
+                <div className="lg:col-span-2 bg-white rounded-3xl shadow-lg border border-admin-border p-6">
                     <div className="flex items-center justify-between mb-6">
-                         <div><h3 className="text-lg font-bold text-gray-900">Distribution</h3><p className="text-xs text-gray-500">Live Status</p></div>
+                        <div><h3 className="text-lg font-bold text-gray-900">Distribution</h3><p className="text-xs text-gray-500">Live Status</p></div>
                     </div>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
@@ -375,10 +374,10 @@ export default function Dashboard() {
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
-                     <div className="flex justify-center gap-6 mt-4">
+                    <div className="flex justify-center gap-6 mt-4">
                         {adsByStatus.map((item, idx) => (
                             <div key={idx} className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full shadow-sm" style={{backgroundColor: item.color}}></div>
+                                <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: item.color }}></div>
                                 <span className="text-sm font-semibold text-gray-700">{item.name}</span>
                                 <span className="text-sm font-bold text-gray-900">{item.value}</span>
                             </div>
@@ -386,7 +385,7 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6">
+                <div className="bg-white rounded-3xl shadow-lg border border-admin-border p-6">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600"><Activity size={20} /></div>
@@ -404,16 +403,16 @@ export default function Dashboard() {
                 </div>
             </div>
 
-             {/* Growth Chart */}
-             <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6">
-                 <div className="flex items-center justify-between mb-6">
+            {/* Growth Chart */}
+            <div className="bg-white rounded-3xl shadow-lg border border-admin-border p-6">
+                <div className="flex items-center justify-between mb-6">
                     <div><h3 className="text-lg font-bold text-gray-900">Growth Analytics</h3><p className="text-xs text-gray-500">Last 6 months ads & users</p></div>
-                 </div>
-                 <div className="h-64">
+                </div>
+                <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={monthlyData}>
                             <defs>
-                                <linearGradient id="colorAds" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/></linearGradient>
+                                <linearGradient id="colorAds" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} /><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} /></linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                             <XAxis dataKey="month" stroke="#9ca3af" fontSize={12} />
@@ -423,8 +422,8 @@ export default function Dashboard() {
                             <Area type="monotone" dataKey="users" stroke="#10b981" strokeWidth={3} fillOpacity={0.1} fill="#10b981" />
                         </AreaChart>
                     </ResponsiveContainer>
-                 </div>
-             </div>
+                </div>
+            </div>
         </div>
     );
 }

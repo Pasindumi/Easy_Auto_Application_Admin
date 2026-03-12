@@ -10,19 +10,28 @@ import {
     Search,
     ShieldAlert,
     Trash2,
-    Filter
+    Filter,
+    Star,
+    MessageCircle,
+    Send
 } from 'lucide-react';
-import { reportsApi, complaintsApi } from '../api';
+import { reportsApi, complaintsApi, appReviewsApi } from '../api';
 import PageHeader from '../components/PageHeader';
 import clsx from 'clsx';
 
 export default function AdReportsPage() {
-    const [view, setView] = useState('REPORTS'); // 'REPORTS' or 'COMPLAINTS'
+    const [view, setView] = useState('REPORTS'); // 'REPORTS', 'COMPLAINTS', 'REVIEWS'
     const [reports, setReports] = useState([]);
     const [complaints, setComplaints] = useState([]);
+    const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('ALL');
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Reply State
+    const [replyingTo, setReplyingTo] = useState(null); // Review ID
+    const [replyText, setReplyText] = useState('');
+    const [submittingReply, setSubmittingReply] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -36,10 +45,15 @@ export default function AdReportsPage() {
                 if (response.data.success) {
                     setReports(response.data.data);
                 }
-            } else {
+            } else if (view === 'COMPLAINTS') {
                 const response = await complaintsApi.getAll();
                 if (response.data.success) {
                     setComplaints(response.data.data);
+                }
+            } else if (view === 'REVIEWS') {
+                const response = await appReviewsApi.getAll();
+                if (response.data.success) {
+                    setReviews(response.data.data);
                 }
             }
         } catch (error) {
@@ -56,7 +70,7 @@ export default function AdReportsPage() {
                 if (response.data.success) {
                     setReports(reports.map(r => r.id === id ? { ...r, status } : r));
                 }
-            } else {
+            } else if (view === 'COMPLAINTS') {
                 const response = await complaintsApi.updateStatus(id, { status });
                 if (response.data.success) {
                     setComplaints(complaints.map(c => c.id === id ? { ...c, status } : c));
@@ -67,10 +81,47 @@ export default function AdReportsPage() {
         }
     };
 
-    const currentData = view === 'REPORTS' ? reports : complaints;
+    const handleReplySubmit = async (reviewId) => {
+        if (!replyText.trim()) return;
+        setSubmittingReply(true);
+        try {
+            const response = await appReviewsApi.reply(reviewId, { reply: replyText });
+            if (response.data.success) {
+                setReviews(reviews.map(r => r.id === reviewId ? { ...r, reply: replyText, reply_at: new Date() } : r));
+                setReplyingTo(null);
+                setReplyText('');
+            }
+        } catch (error) {
+            console.error("Error replying to review:", error);
+        } finally {
+            setSubmittingReply(false);
+        }
+    };
+
+    const handleDeleteReview = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this review?")) return;
+        try {
+            const response = await appReviewsApi.delete(id);
+            if (response.data.success) {
+                setReviews(reviews.filter(r => r.id !== id));
+            }
+        } catch (error) {
+            console.error("Error deleting review:", error);
+        }
+    };
+
+    const currentData = view === 'REPORTS' ? reports : (view === 'COMPLAINTS' ? complaints : reviews);
 
     const filteredData = currentData.filter(item => {
-        const matchesStatus = filterStatus === 'ALL' || item.status === filterStatus;
+        let matchesStatus = true;
+        if (view !== 'REVIEWS') {
+            matchesStatus = filterStatus === 'ALL' || item.status === filterStatus;
+        } else {
+            // For reviews, filterStatus could reuse logic or differ. 
+            // Let's say filterStatus 'ALL' means all, 'PENDING' means not replied, 'RESOLVED' means replied
+            if (filterStatus === 'PENDING') matchesStatus = !item.reply;
+            if (filterStatus === 'RESOLVED') matchesStatus = !!item.reply;
+        }
 
         let matchesSearch = false;
         if (view === 'REPORTS') {
@@ -78,12 +129,16 @@ export default function AdReportsPage() {
                 item.ad?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 item.reporter?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 item.reason?.toLowerCase().includes(searchQuery.toLowerCase());
-        } else {
+        } else if (view === 'COMPLAINTS') {
             matchesSearch =
                 item.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 item.user?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 item.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 item.message?.toLowerCase().includes(searchQuery.toLowerCase());
+        } else if (view === 'REVIEWS') {
+            matchesSearch =
+                item.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item.comment?.toLowerCase().includes(searchQuery.toLowerCase());
         }
 
         return matchesStatus && matchesSearch;
@@ -108,25 +163,23 @@ export default function AdReportsPage() {
     };
 
     const pendingCount = reports.filter(r => r.status === 'PENDING').length;
-    const resolvedCount = reports.filter(r => r.status === 'RESOLVED').length;
+    // Ideally we'd fetch counts for all tabs safely but keeping logic simple for now
 
     return (
         <div className="space-y-8">
             <PageHeader
                 title="Report Moderation"
-                subtitle="Review and resolve user reports for flagged content."
+                subtitle="Review reports, complaints, and app reviews."
                 breadcrumbs={['Dashboard', 'Reports']}
                 actions={
-                    <div className="flex items-center gap-4 text-sm font-medium text-gray-500">
-                        <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 text-amber-700 rounded-lg border border-amber-100">
-                            <AlertCircle size={14} />
-                            <span>{pendingCount} Pending</span>
+                    view === 'REPORTS' && (
+                        <div className="flex items-center gap-4 text-sm font-medium text-gray-500">
+                            <div className="flex items-center gap-2 px-3 py-1 bg-admin-bg text-primary rounded-lg border border-admin-border">
+                                <AlertCircle size={14} />
+                                <span>{pendingCount} Pending</span>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-lg border border-green-100">
-                            <CheckCircle2 size={14} />
-                            <span>{resolvedCount} Resolved</span>
-                        </div>
-                    </div>
+                    )
                 }
             />
 
@@ -134,16 +187,16 @@ export default function AdReportsPage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">
-                            {view === 'REPORTS' ? 'Ad Reports' : 'User Complaints'}
+                            {view === 'REPORTS' ? 'Ad Reports' : (view === 'COMPLAINTS' ? 'User Complaints' : 'App Reviews')}
                         </h1>
                         <p className="text-gray-500 text-sm mt-1">
                             {view === 'REPORTS'
                                 ? 'Monitor and resolve reports for fake ads or spam'
-                                : 'Manage and respond to user complaints and feedback'}
+                                : (view === 'COMPLAINTS' ? 'Manage and respond to user complaints' : 'See what users are saying about the app')}
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <div className="bg-gray-100 p-1 rounded-xl flex">
+                        <div className="bg-white/80 p-1 rounded-2xl flex border border-admin-border shadow-sm backdrop-blur-sm">
                             <button
                                 onClick={() => { setView('REPORTS'); setFilterStatus('ALL'); }}
                                 className={clsx(
@@ -162,6 +215,15 @@ export default function AdReportsPage() {
                             >
                                 Complaints
                             </button>
+                            <button
+                                onClick={() => { setView('REVIEWS'); setFilterStatus('ALL'); }}
+                                className={clsx(
+                                    "px-4 py-2 rounded-lg text-sm font-bold transition-all",
+                                    view === 'REVIEWS' ? "bg-white text-primary shadow-sm" : "text-gray-500 hover:text-gray-700"
+                                )}
+                            >
+                                Reviews
+                            </button>
                         </div>
                         <button
                             onClick={fetchData}
@@ -173,33 +235,46 @@ export default function AdReportsPage() {
                 </div>
 
                 {/* Toolbar */}
-                <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-lg flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div className="bg-white p-4 rounded-3xl border border-admin-border shadow-lg flex flex-col md:flex-row gap-4 items-center justify-between">
                     <div className="relative w-full md:w-96 group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={18} />
                         <input
                             type="text"
-                            placeholder={view === 'REPORTS'
-                                ? "Search by ad title, reporter, or reason..."
-                                : "Search by user, email, category, or message..."}
+                            placeholder={view === 'REVIEWS' ? "Search reviews..." : "Search..."}
                             className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
 
-                    <div className="flex p-1 bg-gray-50 rounded-xl border border-gray-100">
-                        {['ALL', 'PENDING', 'REVIEWED', 'RESOLVED'].map((status) => (
-                            <button
-                                key={status}
-                                onClick={() => setFilterStatus(status)}
-                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${filterStatus === status
+                    <div className="flex p-1 bg-admin-bg rounded-xl border border-admin-border">
+                        {view === 'REVIEWS' ? (
+                            ['ALL', 'PENDING', 'RESOLVED'].map((status) => (
+                                <button
+                                    key={status}
+                                    onClick={() => setFilterStatus(status)}
+                                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${filterStatus === status
                                         ? 'bg-white text-gray-900 shadow-sm'
                                         : 'text-gray-500 hover:text-gray-900'
-                                    }`}
-                            >
-                                {status}
-                            </button>
-                        ))}
+                                        }`}
+                                >
+                                    {status === 'ALL' ? 'All' : (status === 'PENDING' ? 'Unreplied' : 'Replied')}
+                                </button>
+                            ))
+                        ) : (
+                            ['ALL', 'PENDING', 'REVIEWED', 'RESOLVED'].map((status) => (
+                                <button
+                                    key={status}
+                                    onClick={() => setFilterStatus(status)}
+                                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${filterStatus === status
+                                        ? 'bg-white text-gray-900 shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-900'
+                                        }`}
+                                >
+                                    {status}
+                                </button>
+                            ))
+                        )}
                     </div>
                 </div>
 
@@ -211,26 +286,33 @@ export default function AdReportsPage() {
                             <p className="text-gray-500">Loading {view.toLowerCase()}...</p>
                         </div>
                     ) : filteredData.length === 0 ? (
-                        <div className="bg-white rounded-3xl border border-gray-100 p-16 text-center shadow-lg">
+                        <div className="bg-white rounded-3xl border border-admin-border p-16 text-center shadow-lg">
                             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
-                                {view === 'REPORTS' ? <Flag size={40} /> : <ShieldAlert size={40} />}
+                                {view === 'REPORTS' ? <Flag size={40} /> : (view === 'COMPLAINTS' ? <ShieldAlert size={40} /> : <Star size={40} />)}
                             </div>
-                            <h3 className="text-xl font-bold text-gray-900">No {view.toLowerCase()} found</h3>
-                            <p className="text-gray-500 max-w-sm mx-auto mt-2">Everything looks clean! Checking regularly helps keep the platform safe.</p>
+                            <h3 className="text-xl font-bold text-gray-900">No data found</h3>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {filteredData.map((item) => (
-                                <div key={item.id} className="bg-white rounded-3xl border border-gray-100 shadow-lg hover:shadow-xl hover:border-primary/20 transition-all duration-300 group overflow-hidden flex flex-col">
+                                <div key={item.id} className="bg-white rounded-3xl border border-admin-border shadow-lg hover:shadow-xl hover:border-primary/20 transition-all duration-300 group overflow-hidden flex flex-col">
                                     <div className="p-6 flex-1">
                                         <div className="flex justify-between items-start mb-4">
-                                            <span className={clsx(
-                                                "px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase border flex items-center gap-1.5",
-                                                getStatusStyles(item.status)
-                                            )}>
-                                                {getStatusIcon(item.status)}
-                                                {item.status}
-                                            </span>
+                                            {view !== 'REVIEWS' ? (
+                                                <span className={clsx(
+                                                    "px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase border flex items-center gap-1.5",
+                                                    getStatusStyles(item.status)
+                                                )}>
+                                                    {getStatusIcon(item.status)}
+                                                    {item.status}
+                                                </span>
+                                            ) : (
+                                                <div className="flex gap-1">
+                                                    {[1, 2, 3, 4, 5].map(star => (
+                                                        <Star key={star} size={14} className={star <= item.rating ? "fill-amber-400 text-amber-400" : "text-gray-200"} />
+                                                    ))}
+                                                </div>
+                                            )}
                                             <span className="text-xs font-medium text-gray-400">
                                                 {new Date(item.created_at).toLocaleDateString()}
                                             </span>
@@ -239,31 +321,16 @@ export default function AdReportsPage() {
                                         <div className="flex items-start gap-4 mb-6">
                                             <div className={clsx(
                                                 "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0",
-                                                view === 'REPORTS' ? "bg-red-50 text-red-500" : "bg-blue-50 text-blue-500"
+                                                view === 'REPORTS' ? "bg-red-50 text-red-500" : (view === 'COMPLAINTS' ? "bg-blue-50 text-blue-500" : "bg-purple-50 text-purple-500")
                                             )}>
-                                                {view === 'REPORTS' ? <Flag size={20} /> : <ShieldAlert size={20} />}
+                                                {view === 'REPORTS' ? <Flag size={20} /> : (view === 'COMPLAINTS' ? <ShieldAlert size={20} /> : <MessageCircle size={20} />)}
                                             </div>
                                             <div>
-                                                <h3 className="text-lg font-bold text-gray-900 line-clamp-1 mb-1" title={view === 'REPORTS' ? (item.ad?.title || "Deleted Ad") : item.category}>
-                                                    {view === 'REPORTS' ? (
-                                                        <>
-                                                            {item.ad?.title || <span className="text-red-400 italic">Deleted Advertisement</span>}
-                                                            {item.ad_id && (
-                                                                <a
-                                                                    href={`http://localhost:5173/cars/${item.ad_id}`}
-                                                                    target="_blank"
-                                                                    rel="noreferrer"
-                                                                    className="inline-flex items-center gap-1 text-xs font-bold text-primary ml-2 hover:underline"
-                                                                >
-                                                                    View <ExternalLink size={10} />
-                                                                </a>
-                                                            )}
-                                                        </>
-                                                    ) : item.category}
+                                                <h3 className="text-lg font-bold text-gray-900 line-clamp-1 mb-1">
+                                                    {view === 'REPORTS' ? (item.ad?.title || "Deleted Ad") : (view === 'COMPLAINTS' ? item.category : "App Review")}
                                                 </h3>
                                                 <div className="flex items-center gap-2 text-xs text-gray-500">
                                                     <User size={12} />
-                                                    {view === 'REPORTS' ? "Reported by " : "From "}
                                                     <span className="font-bold text-gray-700">
                                                         {view === 'REPORTS'
                                                             ? (item.reporter?.name || 'Anonymous')
@@ -275,39 +342,99 @@ export default function AdReportsPage() {
 
                                         <div className={clsx(
                                             "p-4 rounded-xl border flex gap-3 mb-4",
-                                            view === 'REPORTS' ? "bg-red-50/50 border-red-100/50" : "bg-blue-50/50 border-blue-100/50"
+                                            "bg-gray-50/50 border-gray-100"
                                         )}>
-                                            <MessageSquare className={clsx("shrink-0", view === 'REPORTS' ? "text-red-400" : "text-blue-400")} size={18} />
-                                            <p className="text-sm text-gray-700 font-medium italic">"{view === 'REPORTS' ? item.reason : item.message}"</p>
+                                            <MessageSquare className="shrink-0 text-gray-400" size={18} />
+                                            <p className="text-sm text-gray-700 font-medium italic">"{view === 'REPORTS' ? item.reason : (view === 'COMPLAINTS' ? item.message : item.comment)}"</p>
                                         </div>
 
-                                        {view === 'COMPLAINTS' && item.user?.email && (
-                                            <div className="text-xs text-gray-500 mb-4 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                                                Email: <span className="font-bold text-gray-700">{item.user.email}</span>
+                                        {view === 'REVIEWS' && item.reply && (
+                                            <div className="ml-4 p-4 rounded-xl border border-blue-100 bg-blue-50/30 mb-4">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <div className="bg-admin-bg text-primary p-1 rounded border border-admin-border">
+                                                        <Send size={12} />
+                                                    </div>
+                                                    <span className="text-xs font-bold text-blue-800">Admin Response</span>
+                                                </div>
+                                                <p className="text-sm text-gray-700">{item.reply}</p>
+                                            </div>
+                                        )}
+
+                                        {/* Reply Input for Reviews */}
+                                        {view === 'REVIEWS' && replyingTo === item.id && (
+                                            <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                                <textarea
+                                                    className="w-full p-3 border rounded-lg text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                                    rows="3"
+                                                    placeholder="Write a reply..."
+                                                    value={replyText}
+                                                    onChange={(e) => setReplyText(e.target.value)}
+                                                ></textarea>
+                                                <div className="flex gap-2 justify-end">
+                                                    <button
+                                                        onClick={() => setReplyingTo(null)}
+                                                        className="px-3 py-1.5 text-xs font-bold text-gray-500 hover:bg-gray-200 rounded-lg"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleReplySubmit(item.id)}
+                                                        disabled={submittingReply}
+                                                        className="px-3 py-1.5 text-xs font-bold text-white bg-primary hover:bg-blue-700 rounded-lg disabled:opacity-50"
+                                                    >
+                                                        {submittingReply ? 'Sending...' : 'Send Reply'}
+                                                    </button>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
 
                                     <div className="bg-gray-50/50 p-4 border-t border-gray-100 flex gap-2">
-                                        {item.status !== 'RESOLVED' && (
+                                        {view !== 'REVIEWS' ? (
+                                            <>
+                                                {item.status !== 'RESOLVED' && (
+                                                    <button
+                                                        onClick={() => handleUpdateStatus(item.id, 'RESOLVED')}
+                                                        className="flex-1 py-2.5 bg-green-50 hover:bg-green-100 text-green-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
+                                                    >
+                                                        <CheckCircle2 size={16} /> Mark Resolved
+                                                    </button>
+                                                )}
+                                                {item.status === 'PENDING' && (
+                                                    <button
+                                                        onClick={() => handleUpdateStatus(item.id, 'REVIEWED')}
+                                                        className="flex-1 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
+                                                    >
+                                                        <AlertCircle size={16} /> Review
+                                                    </button>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <>
+                                                {!item.reply && !replyingTo && (
+                                                    <button
+                                                        onClick={() => { setReplyingTo(item.id); setReplyText(''); }}
+                                                        className="flex-1 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
+                                                    >
+                                                        <MessageCircle size={16} /> Reply
+                                                    </button>
+                                                )}
+                                                {item.reply && (
+                                                    <div className="flex-1 py-2.5 text-xs font-bold text-green-600 flex items-center justify-center gap-2 cursor-default">
+                                                        <CheckCircle2 size={16} /> Replied
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
+
+                                        {(view === 'REVIEWS' || view === 'REPORTS') && (
                                             <button
-                                                onClick={() => handleUpdateStatus(item.id, 'RESOLVED')}
-                                                className="flex-1 py-2.5 bg-green-50 hover:bg-green-100 text-green-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
+                                                onClick={() => view === 'REVIEWS' ? handleDeleteReview(item.id) : null}
+                                                className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
                                             >
-                                                <CheckCircle2 size={16} /> Mark Resolved
+                                                <Trash2 size={18} />
                                             </button>
                                         )}
-                                        {item.status === 'PENDING' && (
-                                            <button
-                                                onClick={() => handleUpdateStatus(item.id, 'REVIEWED')}
-                                                className="flex-1 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                <AlertCircle size={16} /> Review
-                                            </button>
-                                        )}
-                                        <button className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
-                                            <Trash2 size={18} />
-                                        </button>
                                     </div>
                                 </div>
                             ))}
