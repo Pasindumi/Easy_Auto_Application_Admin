@@ -77,7 +77,7 @@ const SubscribersPage = () => {
             accessor: 'users',
             render: (sub) => (
                 <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-50 flex items-center justify-center text-blue-600 font-bold border border-white shadow-sm overflow-hidden flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-admin-bg flex items-center justify-center text-primary font-bold border border-admin-border shadow-sm overflow-hidden flex-shrink-0">
                         {sub.users?.avatar ? (
                             <img src={sub.users.avatar} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -97,7 +97,7 @@ const SubscribersPage = () => {
             header: 'Active Plan',
             accessor: 'package',
             render: (sub) => (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-600 border border-blue-100 uppercase tracking-wide">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-admin-bg text-primary border border-admin-border uppercase tracking-wide">
                     {sub.package?.name || 'Unknown Package'}
                 </span>
             )
@@ -138,14 +138,14 @@ const SubscribersPage = () => {
                 subtitle="Monitor active premium users and subscriptions."
                 breadcrumbs={['Dashboard', 'Subscribers']}
                 actions={
-                    <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-xl border border-green-100 shadow-sm">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-admin-bg text-primary rounded-xl border border-admin-border shadow-sm">
                         <CreditCard size={16} />
                         <span className="text-sm font-bold">{subscribers.length} Active Plans</span>
                     </div>
                 }
             />
 
-            <DataTable 
+            <DataTable
                 columns={columns}
                 data={filteredSubscribers}
                 loading={loading}
@@ -160,10 +160,10 @@ const SubscribersPage = () => {
             {/* Premium Usage Details Modal */}
             {selectedUser && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in custom-scrollbar">
-                    <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-slide-up border border-gray-100">
+                    <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-slide-up border border-admin-border">
                         {/* Modal Header */}
                         <div className="relative h-32 bg-gradient-to-r from-gray-900 to-blue-900 p-8 flex items-end">
-                             <button
+                            <button
                                 onClick={() => { setSelectedUser(null); setUsageDetails(null); }}
                                 className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors backdrop-blur-sm"
                             >
@@ -171,7 +171,7 @@ const SubscribersPage = () => {
                             </button>
                             <div className="flex items-center gap-5 relative z-10 translate-y-4">
                                 <div className="w-20 h-20 rounded-2xl bg-white p-1 shadow-xl rotate-3">
-                                    <div className="w-full h-full rounded-xl bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100">
+                                    <div className="w-full h-full rounded-xl bg-admin-bg flex items-center justify-center overflow-hidden border border-admin-border">
                                         {selectedUser.users?.avatar ? (
                                             <img src={selectedUser.users.avatar} alt="" className="w-full h-full object-cover" />
                                         ) : (
@@ -192,8 +192,8 @@ const SubscribersPage = () => {
                         <div className="pt-10 px-8 pb-8">
                             {detailsLoading ? (
                                 <div className="space-y-6 py-4 animate-pulse">
-                                    <div className="h-24 bg-gray-100 rounded-2xl"></div>
-                                    <div className="h-48 bg-gray-100 rounded-2xl"></div>
+                                    <div className="h-24 bg-admin-bg animate-pulse rounded-2xl"></div>
+                                    <div className="h-48 bg-admin-bg animate-pulse rounded-2xl"></div>
                                 </div>
                             ) : usageDetails ? (
                                 <div className="space-y-8">
@@ -221,21 +221,20 @@ const SubscribersPage = () => {
 
                                         <div className="space-y-4">
                                             {usageDetails.limits?.map((limit, idx) => (
-                                                <div key={idx} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                                                <div key={idx} className="bg-white border border-admin-border rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
                                                     <div className="flex justify-between items-center mb-3">
                                                         <span className="font-bold text-gray-900 text-lg">{limit.vehicle_types?.type_name}</span>
-                                                        <span className={`text-xs font-bold px-3 py-1 rounded-lg uppercase ${
-                                                            limit.is_unlimited 
-                                                                ? 'bg-purple-100 text-purple-700' 
-                                                                : 'bg-gray-100 text-gray-600'
-                                                        }`}>
+                                                        <span className={`text-xs font-bold px-3 py-1 rounded-lg uppercase ${limit.is_unlimited
+                                                            ? 'bg-purple-100 text-purple-700'
+                                                            : 'bg-admin-bg text-primary'
+                                                            }`}>
                                                             {limit.is_unlimited ? 'Unlimited' : `${limit.quantity} Slots`}
                                                         </span>
                                                     </div>
 
                                                     {!limit.is_unlimited && (
                                                         <>
-                                                            <div className="h-3 bg-gray-100 rounded-full overflow-hidden mb-3">
+                                                            <div className="h-3 bg-admin-bg rounded-full overflow-hidden mb-3">
                                                                 <div
                                                                     className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-1000 ease-out"
                                                                     style={{ width: `${(limit.used_count / limit.quantity) * 100}%` }}
@@ -258,7 +257,7 @@ const SubscribersPage = () => {
                                     </div>
 
                                     {/* Additional Features */}
-                                    <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                                    <div className="bg-admin-bg rounded-2xl p-6 border border-admin-border">
                                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                                             <Shield size={16} className="text-gray-900" />
                                             Features & Limits

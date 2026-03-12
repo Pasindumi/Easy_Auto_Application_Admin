@@ -21,8 +21,8 @@ export default function Layout() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex">
-            <Toaster 
+        <div className="min-h-screen bg-admin-bg flex">
+            <Toaster
                 position="top-right"
                 toastOptions={{
                     className: 'animate-slide-down font-medium text-sm',
@@ -34,7 +34,7 @@ export default function Layout() {
                     },
                 }}
             />
-            
+
             {/* Sidebar */}
             <Sidebar />
 
@@ -63,7 +63,7 @@ export default function Layout() {
 
             {/* Mobile Sidebar Overlay */}
             {mobileOpen && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm animate-fade-in"
                     onClick={() => setMobileOpen(false)}
                 />

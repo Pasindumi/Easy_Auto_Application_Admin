@@ -114,7 +114,7 @@ export default function UsersPage() {
             accessor: 'name',
             render: (user) => (
                 <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-50 flex items-center justify-center text-blue-600 font-bold border border-white shadow-sm overflow-hidden flex-shrink-0">
+                    <div className="h-10 w-10 rounded-full bg-admin-bg flex items-center justify-center text-primary font-bold border border-white shadow-sm overflow-hidden flex-shrink-0">
                         {user.avatar ? (
                             <img src={user.avatar} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -140,8 +140,8 @@ export default function UsersPage() {
                     <div className="flex items-center gap-2">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase border ${user.role === 'SUPER_ADMIN' ? "bg-purple-50 text-purple-600 border-purple-100" :
                             user.role === 'ADMIN' ? "bg-blue-50 text-blue-600 border-blue-100" :
-                                user.role === 'MODERATOR' ? "bg-amber-50 text-amber-600 border-amber-100" :
-                                    "bg-gray-50 text-gray-600 border-gray-100"
+                                user.role === 'ADMIN' ? "bg-admin-bg text-primary border-admin-border" :
+                                    "bg-admin-bg/50 text-gray-500 border-admin-border/50"
                             }`}>
                             {user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' ? <Shield size={10} /> : <BadgeCheck size={10} />}
                             {user.role}
@@ -183,7 +183,7 @@ export default function UsersPage() {
                         <span className="font-bold text-gray-900 text-sm">{user.stats?.posted || 0}</span>
                         <span className="text-[10px] text-gray-400 font-bold uppercase">Ads</span>
                     </div>
-                    <div className="w-px h-6 bg-gray-100"></div>
+                    <div className="w-px h-6 bg-admin-border"></div>
                     <div className="flex flex-col items-center">
                         <span className="font-bold text-gray-500 text-sm">{user.stats?.drafted || 0}</span>
                         <span className="text-[10px] text-gray-400 font-bold uppercase">Drafts</span>
@@ -237,8 +237,8 @@ export default function UsersPage() {
                 subtitle="Manage and monitor all registered users."
                 breadcrumbs={['Dashboard', 'Users']}
                 actions={
-                    <div className="hidden sm:flex items-center gap-3 bg-white p-1.5 rounded-2xl border border-gray-100 shadow-sm">
-                        <div className="flex flex-col items-center px-4 py-1 border-r border-gray-100">
+                    <div className="hidden sm:flex items-center gap-3 bg-white p-1.5 rounded-2xl border border-admin-border shadow-sm">
+                        <div className="flex flex-col items-center px-4 py-1 border-r border-admin-border">
                             <span className="text-xl font-black text-primary">{users.length}</span>
                             <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400">Total</span>
                         </div>
@@ -281,7 +281,7 @@ export default function UsersPage() {
             {/* Ban Modal */}
             {showBanModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-gray-100 scale-in-center transition-all">
+                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-admin-border scale-in-center transition-all">
                         <div className="flex items-center gap-4 mb-6">
                             <div className="p-3 bg-orange-50 text-orange-500 rounded-2xl">
                                 <ShieldAlert size={28} />
@@ -296,7 +296,7 @@ export default function UsersPage() {
                             <div className="space-y-2">
                                 <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-1">Ban Duration</label>
                                 <select
-                                    className="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 text-gray-700 font-bold focus:ring-2 focus:ring-primary/20 transition-all"
+                                    className="w-full bg-admin-bg border-none rounded-2xl py-3 px-4 text-gray-700 font-bold focus:ring-2 focus:ring-primary/20 transition-all"
                                     value={banDuration}
                                     onChange={(e) => setBanDuration(e.target.value)}
                                 >
@@ -312,7 +312,7 @@ export default function UsersPage() {
                             <div className="space-y-2">
                                 <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-1">Reason for Ban</label>
                                 <textarea
-                                    className="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 text-gray-700 font-bold focus:ring-2 focus:ring-primary/20 transition-all min-h-[100px]"
+                                    className="w-full bg-admin-bg border-none rounded-2xl py-3 px-4 text-gray-700 font-bold focus:ring-2 focus:ring-primary/20 transition-all min-h-[100px]"
                                     placeholder="Explain why this user is being banned..."
                                     value={banReason}
                                     onChange={(e) => setBanReason(e.target.value)}
@@ -322,7 +322,7 @@ export default function UsersPage() {
                             <div className="flex gap-4 pt-2">
                                 <button
                                     onClick={() => setShowBanModal(false)}
-                                    className="flex-1 py-4 bg-gray-100 text-gray-600 font-black rounded-2xl hover:bg-gray-200 active:scale-95 transition-all uppercase tracking-widest text-xs"
+                                    className="flex-1 py-4 bg-admin-bg text-primary font-black rounded-2xl hover:bg-admin-border active:scale-95 transition-all uppercase tracking-widest text-xs"
                                 >
                                     Cancel
                                 </button>

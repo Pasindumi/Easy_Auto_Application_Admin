@@ -186,7 +186,7 @@ export default function PricingPage() {
             accessor: 'vehicle_types',
             render: (rule) => (
                 <div className="flex items-center gap-2 font-bold text-gray-800">
-                    <span className="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><Tag size={16} /></span>
+                    <span className="p-1.5 bg-admin-bg text-primary rounded-lg border border-admin-border"><Tag size={16} /></span>
                     {rule.vehicle_types?.type_name || 'All Vehicle Types'}
                 </div>
             )
@@ -196,7 +196,7 @@ export default function PricingPage() {
             accessor: 'price',
             render: (rule) => (
                 <span className="font-black text-green-600 bg-green-50 px-3 py-1 rounded-lg border border-green-100">
-                    ${Number(rule.price).toFixed(2)}
+                    Rs. {Number(rule.price).toFixed(2)}
                 </span>
             )
         },
@@ -205,10 +205,10 @@ export default function PricingPage() {
             accessor: 'features',
             render: (rule) => (
                 <div className="flex gap-2">
-                    <span className="px-2 py-1 bg-gray-100 rounded text-xs font-semibold text-gray-600 border border-gray-200">
+                    <span className="px-2 py-1 bg-admin-bg rounded text-xs font-semibold text-primary border border-admin-border">
                         {rule.free_image_count >= 100 ? 'Unlimited Images' : `${rule.free_image_count} Images`}
                     </span>
-                    <span className="px-2 py-1 bg-gray-100 rounded text-xs font-semibold text-gray-600 border border-gray-200">
+                    <span className="px-2 py-1 bg-admin-bg rounded text-xs font-semibold text-primary border border-admin-border">
                         {rule.description_limit >= 10000 ? 'Unlimited Text' : `${rule.description_limit} Chars`}
                     </span>
                 </div>
@@ -236,7 +236,7 @@ export default function PricingPage() {
             accessor: 'name',
             render: (item) => (
                 <div className="flex items-center gap-3">
-                    <div className={`p-2.5 rounded-xl ${item.item_type === 'PACKAGE' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
+                    <div className={`p-2.5 rounded-xl ${item.item_type === 'PACKAGE' ? 'bg-purple-100 text-purple-600' : 'bg-admin-bg text-primary border border-admin-border'}`}>
                         {item.item_type === 'PACKAGE' ? <Package size={20} /> : <Tag size={20} />}
                     </div>
                     <div>
@@ -304,7 +304,7 @@ export default function PricingPage() {
             header: 'Category Scope',
             accessor: 'vehicle_types',
             render: (rule) => (
-                <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                <span className="text-sm text-primary bg-admin-bg px-2 py-1 rounded border border-admin-border font-semibold">
                     {rule.vehicle_types?.type_name || 'Global (All Types)'}
                 </span>
             )
@@ -314,7 +314,7 @@ export default function PricingPage() {
             accessor: 'price',
             render: (rule) => (
                 <div className="flex items-center gap-2">
-                    <span className="font-bold text-gray-900">${Number(rule.price).toFixed(2)}</span>
+                    <span className="font-bold text-gray-900">Rs. {Number(rule.price).toFixed(2)}</span>
                     <span className="text-xs text-gray-500 uppercase">/ {rule.unit.replace('_', ' ')}</span>
                 </div>
             )
@@ -342,7 +342,7 @@ export default function PricingPage() {
                 subtitle="Configure pricing for ads, premium packages, and listing fees."
                 breadcrumbs={['Dashboard', 'Pricing']}
                 actions={
-                    <div className="flex bg-gray-100 p-1 rounded-xl">
+                    <div className="flex bg-admin-bg p-1 rounded-xl">
                         {['ads', 'items', 'rules'].map(tab => (
                             <button
                                 key={tab}
@@ -473,7 +473,7 @@ export default function PricingPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {items.filter(i => i.item_type === 'BOOST_PACKAGE').map((item) => (
-                            <div key={item.id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all p-5 relative group">
+                            <div key={item.id} className="bg-white rounded-xl border border-admin-border shadow-sm hover:shadow-md transition-all p-5 relative group">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="p-3 rounded-lg bg-orange-50 text-orange-600">
                                         <Plus size={24} />
@@ -497,7 +497,7 @@ export default function PricingPage() {
                                     <h3 className="font-bold text-gray-900 text-lg mb-1">{item.name}</h3>
                                     <p className="text-sm text-gray-500 mb-3">{item.description || 'No description'}</p>
                                     <div className="flex flex-wrap gap-2 mb-4">
-                                        <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded font-mono border border-gray-200">
+                                        <span className="bg-admin-bg text-primary text-xs px-2 py-1 rounded font-mono border border-admin-border">
                                             {item.code}
                                         </span>
                                         <span className={`text-xs px-2 py-1 rounded font-semibold ${item.status === 'ACTIVE' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
@@ -560,7 +560,7 @@ export default function PricingPage() {
                             </div>
 
                             <div className="flex gap-3 justify-end pt-2">
-                                <button onClick={() => setIsItemModalOpen(false)} className="px-5 py-2.5 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition-colors">Cancel</button>
+                                <button onClick={() => setIsItemModalOpen(false)} className="px-5 py-2.5 text-primary font-bold hover:bg-admin-bg rounded-xl transition-colors">Cancel</button>
                                 <button onClick={handleSaveItem} className="px-5 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">Save Item</button>
                             </div>
                         </div>
@@ -607,8 +607,8 @@ export default function PricingPage() {
                                 <div className="space-y-1">
                                     <label className="block text-sm font-medium text-gray-700">Price</label>
                                     <div className="relative">
-                                        <span className="absolute left-4 top-3 text-gray-500 font-bold">$</span>
-                                        <input type="number" className="w-full border-gray-200 bg-gray-50 rounded-xl pl-8 p-3 font-bold text-lg outline-none focus:ring-2 focus:ring-green-500/20" value={newRule.price} onChange={e => setNewRule({ ...newRule, price: e.target.value })} placeholder="0.00" />
+                                        <span className="absolute left-4 top-3 text-gray-500 font-bold">Rs.</span>
+                                        <input type="number" className="w-full border-gray-200 bg-gray-50 rounded-xl pl-12 p-3 font-bold text-lg outline-none focus:ring-2 focus:ring-green-500/20" value={newRule.price} onChange={e => setNewRule({ ...newRule, price: e.target.value })} placeholder="0.00" />
                                     </div>
                                 </div>
                                 <div className="space-y-1">
@@ -622,7 +622,7 @@ export default function PricingPage() {
                                             <option value="PER_MONTH">Per Month</option>
                                         </select>
                                     ) : (
-                                        <div className="h-[48px] flex items-center px-4 bg-gray-100 rounded-xl text-gray-500 font-bold text-sm">PER POSTING</div>
+                                        <div className="h-[48px] flex items-center px-4 bg-admin-bg border border-admin-border rounded-xl text-primary font-bold text-sm">PER POSTING</div>
                                     )}
                                 </div>
                             </div>
@@ -644,7 +644,7 @@ export default function PricingPage() {
                             )}
 
                             <div className="flex gap-3 justify-end pt-4">
-                                <button onClick={() => setIsRuleModalOpen(false)} className="px-5 py-2.5 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition-colors">Cancel</button>
+                                <button onClick={() => setIsRuleModalOpen(false)} className="px-5 py-2.5 text-primary font-bold hover:bg-admin-bg rounded-xl transition-colors">Cancel</button>
                                 <button onClick={handleSaveRule} className="px-5 py-2.5 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition-colors shadow-lg shadow-gray-900/20">Save Rule</button>
                             </div>
                         </div>

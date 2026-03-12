@@ -94,7 +94,7 @@ export default function VehicleTypes() {
                 actions={
                     <button
                         onClick={() => setShowModal(true)}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-primary/30 transition-all duration-300 transform hover:-translate-y-0.5"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-bold rounded-xl shadow-lg shadow-primary/30 transition-all duration-300 transform hover:-translate-y-0.5"
                     >
                         <Plus size={18} />
                         Add New Type
@@ -104,10 +104,10 @@ export default function VehicleTypes() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
-                <div className="bg-white p-6 rounded-3xl shadow-lg border border-gray-100 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                <div className="bg-white p-6 rounded-3xl shadow-lg border border-admin-border relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-admin-bg rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
                     <div className="relative">
-                        <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 mb-4">
+                        <div className="w-12 h-12 bg-admin-bg rounded-2xl flex items-center justify-center text-primary mb-4 border border-admin-border">
                             <Settings size={24} />
                         </div>
                         <p className="text-gray-500 font-medium text-sm">Total Configuration Types</p>
@@ -115,7 +115,7 @@ export default function VehicleTypes() {
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-3xl shadow-lg border border-gray-100 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                <div className="bg-white p-6 rounded-3xl shadow-lg border border-admin-border relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
                     <div className="absolute top-0 right-0 w-24 h-24 bg-green-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
                     <div className="relative">
                         <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center text-green-600 mb-4">
@@ -126,7 +126,7 @@ export default function VehicleTypes() {
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-3xl shadow-lg border border-gray-100 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                <div className="bg-white p-6 rounded-3xl shadow-lg border border-admin-border relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
                     <div className="absolute top-0 right-0 w-24 h-24 bg-red-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
                     <div className="relative">
                         <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center text-red-600 mb-4">
@@ -139,8 +139,8 @@ export default function VehicleTypes() {
             </div>
 
             {/* Types Grid / Table */}
-            <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                <div className="p-6 border-b border-gray-100">
+            <div className="bg-white rounded-3xl shadow-lg border border-admin-border overflow-hidden animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                <div className="p-6 border-b border-admin-border">
                     <h3 className="text-lg font-bold text-gray-900">All Vehicle Types</h3>
                     <p className="text-sm text-gray-500"> manage categories like Cars, Bikes, Vans etc.</p>
                 </div>
@@ -155,9 +155,9 @@ export default function VehicleTypes() {
                         {types.map((type, index) => (
                             <div key={type.id} className="p-6 flex items-center justify-between hover:bg-gray-50/50 transition-colors group">
                                 <div className="flex items-center gap-4">
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl ${index % 3 === 0 ? 'bg-blue-100 text-blue-600' :
-                                        index % 3 === 1 ? 'bg-purple-100 text-purple-600' :
-                                            'bg-orange-100 text-orange-600'
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl ${index % 3 === 0 ? 'bg-admin-bg text-primary border border-admin-border' :
+                                        index % 3 === 1 ? 'bg-purple-100 text-purple-600 border border-purple-200' :
+                                            'bg-orange-100 text-orange-600 border border-orange-200'
                                         }`}>
                                         {type.type_name.charAt(0)}
                                     </div>
@@ -199,7 +199,7 @@ export default function VehicleTypes() {
 
                                     <button
                                         onClick={() => navigate(`/vehicle-types/${type.id}`)}
-                                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all"
+                                        className="flex items-center gap-2 px-4 py-2 bg-admin-bg hover:bg-admin-border text-primary font-bold rounded-xl transition-all"
                                     >
                                         <Settings size={16} />
                                         Configure
@@ -223,7 +223,7 @@ export default function VehicleTypes() {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-                    <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl animate-slide-up border border-gray-100">
+                    <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl animate-slide-up border border-admin-border">
                         <div className="text-center mb-6">
                             <div className="w-16 h-16 bg-blue-100 text-primary rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
                                 <Plus size={32} />
@@ -236,7 +236,7 @@ export default function VehicleTypes() {
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 mb-2">Type Name</label>
                                 <input
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-lg"
+                                    className="w-full px-4 py-3 bg-admin-bg border border-admin-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-lg"
                                     placeholder="e.g. Electric Scooter"
                                     value={newTypeName}
                                     onChange={e => setNewTypeName(e.target.value)}
@@ -247,14 +247,14 @@ export default function VehicleTypes() {
                             <div className="flex gap-3 mt-8">
                                 <button
                                     onClick={() => setShowModal(false)}
-                                    className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors"
+                                    className="flex-1 py-3 bg-admin-bg hover:bg-admin-border text-primary font-bold rounded-xl transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleCreate}
                                     disabled={!newTypeName || refreshing}
-                                    className="flex-1 py-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                    className="flex-1 py-3 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-bold rounded-xl shadow-lg shadow-primary/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
                                     {refreshing ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Plus size={20} />}
                                     Create Type

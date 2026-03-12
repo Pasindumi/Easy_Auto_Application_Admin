@@ -37,8 +37,8 @@ export default function SystemLimits() {
 
     return (
         <div className="space-y-6 pb-20">
-            <PageHeader 
-                title="System Configuration" 
+            <PageHeader
+                title="System Configuration"
                 subtitle="Manage global application parameters and constraints."
                 breadcrumbs={['Dashboard', 'Settings', 'Limits']}
             />
@@ -47,12 +47,12 @@ export default function SystemLimits() {
                 {/* Main Configuration Form */}
                 <div className="lg:col-span-2 space-y-8">
                     {Object.entries(groupedLimits).map(([category, items]) => (
-                        <div key={category} className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden animate-slide-up">
-                            <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-                                <div className="p-2 bg-white rounded-lg shadow-sm text-primary">
-                                    {category === 'System' ? <Cpu size={18} /> : 
-                                     category === 'Pricing' ? <Variable size={18} /> : 
-                                     <Settings size={18} />}
+                        <div key={category} className="bg-white rounded-3xl shadow-lg border border-admin-border overflow-hidden animate-slide-up">
+                            <div className="bg-gray-50/50 px-6 py-4 border-b border-admin-border flex items-center gap-3">
+                                <div className="p-2 bg-admin-bg rounded-lg shadow-sm text-primary border border-admin-border">
+                                    {category === 'System' ? <Cpu size={18} /> :
+                                        category === 'Pricing' ? <Variable size={18} /> :
+                                            <Settings size={18} />}
                                 </div>
                                 <h2 className="text-lg font-bold text-gray-800">{category}</h2>
                             </div>
@@ -65,7 +65,7 @@ export default function SystemLimits() {
                                                     {limit.label}
                                                 </label>
                                                 <p className="text-xs text-gray-500 mb-1">{limit.description}</p>
-                                                <span className="inline-block px-1.5 py-0.5 bg-gray-100 text-gray-500 text-[10px] font-mono rounded">
+                                                <span className="inline-block px-1.5 py-0.5 bg-admin-bg text-primary text-[10px] font-mono rounded border border-admin-border">
                                                     {limit.key}
                                                 </span>
                                             </div>
@@ -97,7 +97,7 @@ export default function SystemLimits() {
                 </div>
 
                 {/* Sidebar Info */}
-                <div className="space-y-6">
+                < div className="space-y-6" >
                     <div className="bg-amber-50 rounded-3xl p-6 border border-amber-100 shadow-sm">
                         <div className="flex items-start gap-4">
                             <div className="p-3 bg-white rounded-xl shadow-sm text-amber-500 flex-shrink-0">
@@ -106,7 +106,7 @@ export default function SystemLimits() {
                             <div>
                                 <h3 className="text-lg font-bold text-amber-900 mb-2">Critical Warning</h3>
                                 <p className="text-sm text-amber-800/80 leading-relaxed font-medium">
-                                    Changing these values affects the live environment immediately. 
+                                    Changing these values affects the live environment immediately.
                                     Ensure you understand the impact on user experience and pricing logic before saving.
                                 </p>
                             </div>
@@ -116,7 +116,7 @@ export default function SystemLimits() {
                     <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-lg">
                         <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
                         <div className="space-y-3">
-                            <button 
+                            <button
                                 onClick={() => window.location.reload()}
                                 className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold rounded-xl transition-colors text-left flex items-center justify-between group"
                             >
@@ -129,20 +129,20 @@ export default function SystemLimits() {
                             </button>
                         </div>
                     </div>
-                </div>
-            </div>
+                </div >
+            </div >
 
             {/* Floating Save Bar */}
-            <div className="fixed bottom-6 right-6 lg:right-10 z-30">
+            < div className="fixed bottom-6 right-6 lg:right-10 z-30" >
                 <button
                     onClick={handleSave}
                     disabled={loading}
-                    className={`flex items-center gap-3 px-8 py-4 bg-gray-900 hover:bg-black text-white rounded-2xl font-bold shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 ${loading ? 'opacity-80 cursor-wait' : ''}`}
+                    className={`flex items-center gap-3 px-8 py-4 bg-primary hover:bg-blue-600 text-white rounded-2xl font-bold shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 ${loading ? 'opacity-80 cursor-wait' : ''}`}
                 >
                     <Save size={20} className={loading ? 'animate-pulse' : ''} />
                     {loading ? 'Committing Changes...' : 'Save Configuration'}
                 </button>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

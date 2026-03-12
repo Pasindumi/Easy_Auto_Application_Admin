@@ -27,7 +27,7 @@ export default function DiscountsPage() {
         status: 'ACTIVE',
         vehicle_type_ids: [],
         package_ids: [],
-        color_theme: '#235CF8',
+        color_theme: '#3B82F6',
         offer_image: null,
         // Announcement fields
         title: '',
@@ -106,7 +106,7 @@ export default function DiscountsPage() {
                     status: item.status,
                     vehicle_type_ids: item.discount_vehicle_types?.map(v => v.vehicle_type_id) || [],
                     package_ids: item.discount_packages?.map(p => p.package_id) || [],
-                    color_theme: item.color_theme || '#235CF8',
+                    color_theme: item.color_theme || '#3B82F6',
                     offer_image: null,
                     title: '', content: '', link: '', image: null
                 });
@@ -133,7 +133,7 @@ export default function DiscountsPage() {
                 status: 'ACTIVE',
                 vehicle_type_ids: [],
                 package_ids: [],
-                color_theme: '#235CF8',
+                color_theme: '#3B82F6',
                 offer_image: null,
                 title: '',
                 content: '',
@@ -244,7 +244,7 @@ export default function DiscountsPage() {
             accessor: 'value',
             render: (discount) => (
                 <div className="inline-flex items-center gap-1.5 font-black text-green-600 bg-green-50 px-3 py-1.5 rounded-xl border border-green-100">
-                    {discount.discount_type === 'PERCENTAGE' ? <Percent size={14} /> : <DollarSign size={14} />}
+                    {discount.discount_type === 'PERCENTAGE' ? <Percent size={14} /> : <span className="text-xs">Rs.</span>}
                     <span className="text-lg">{discount.value}</span>
                     {discount.discount_type === 'PERCENTAGE' ? '%' : ''}
                 </div>
@@ -415,7 +415,7 @@ export default function DiscountsPage() {
             />
 
             {/* View Toggle */}
-            <div className="flex p-1 bg-gray-100/80 backdrop-blur-sm rounded-2xl w-fit border border-gray-200 shadow-inner">
+            <div className="flex p-1 bg-white/80 backdrop-blur-sm rounded-2xl w-fit border border-admin-border shadow-inner">
                 <button
                     onClick={() => setView('DISCOUNTS')}
                     className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold transition-all ${view === 'DISCOUNTS'
@@ -449,8 +449,8 @@ export default function DiscountsPage() {
             {/* Create/Edit Modal - Styled Premium */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in custom-scrollbar">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col animate-slide-up">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col animate-slide-up border border-admin-border">
+                        <div className="p-6 border-b border-admin-border flex justify-between items-center bg-admin-bg">
                             <div>
                                 <h2 className="text-xl font-black text-gray-900">
                                     {editingId ? 'Edit' : 'New'} {view === 'DISCOUNTS' ? 'Discount Offer' : 'Announcement'}
@@ -485,14 +485,14 @@ export default function DiscountsPage() {
                                                 onChange={e => setFormData({ ...formData, discount_type: e.target.value })}
                                             >
                                                 <option value="PERCENTAGE">Percentage (%)</option>
-                                                <option value="FIXED">Fixed Amount ($)</option>
+                                                <option value="FIXED">Fixed Amount (Rs.)</option>
                                             </select>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold text-gray-700 mb-2">Value</label>
                                             <div className="relative">
                                                 <span className="absolute left-3 top-3.5 text-gray-400">
-                                                    {formData.discount_type === 'PERCENTAGE' ? <Percent size={18} /> : <DollarSign size={18} />}
+                                                    {formData.discount_type === 'PERCENTAGE' ? <Percent size={18} /> : <span className="text-sm font-bold">Rs.</span>}
                                                 </span>
                                                 <input
                                                     required
@@ -534,7 +534,7 @@ export default function DiscountsPage() {
                                     </div>
 
                                     {/* Targets Section */}
-                                    <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                                    <div className="bg-admin-bg rounded-2xl p-6 border border-admin-border">
                                         <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
                                             <Users size={16} /> Target Audience
                                         </h3>
@@ -701,11 +701,11 @@ export default function DiscountsPage() {
                                 </button>
                             </div>
 
-                            <div className="flex gap-3 justify-end pt-4 sticky bottom-0 bg-white p-4 -mx-6 -mb-6 border-t border-gray-100 z-10">
+                            <div className="flex gap-3 justify-end pt-4 sticky bottom-0 bg-white p-4 -mx-6 -mb-6 border-t border-admin-border z-10">
                                 <button
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}
-                                    className="px-6 py-2.5 text-gray-500 hover:bg-gray-100 rounded-xl font-bold transition-all"
+                                    className="px-6 py-2.5 text-primary hover:bg-admin-bg rounded-xl font-bold transition-all"
                                 >
                                     Cancel
                                 </button>

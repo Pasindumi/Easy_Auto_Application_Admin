@@ -151,7 +151,7 @@ export default function Ads() {
             SOLD: 'bg-indigo-50 text-indigo-700 border-indigo-200',
             EXPIRED: 'bg-red-50 text-red-700 border-red-200',
             REJECTED: 'bg-red-50 text-red-700 border-red-200',
-            BANNED: 'bg-gray-900 text-white border-gray-900'
+            BANNED: 'bg-red-100 text-red-700 border-red-300'
         };
 
         const icons = {
@@ -182,7 +182,7 @@ export default function Ads() {
                 const vehicleType = ad.vehicle_type?.type_name || ad.CarDetails?.[0]?.vehicle_type || 'Vehicle';
                 return (
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-12 rounded-lg bg-gray-100 overflow-hidden border border-gray-200 shadow-sm flex-shrink-0">
+                        <div className="w-16 h-12 rounded-lg bg-admin-bg overflow-hidden border border-admin-border shadow-sm flex-shrink-0">
                             {ad.AdImage && ad.AdImage[0] ? (
                                 <img
                                     src={ad.AdImage[0].image_url}
@@ -207,8 +207,8 @@ export default function Ads() {
             header: 'Price',
             accessor: 'price',
             render: (ad) => (
-                <span className="font-bold text-gray-900 bg-gray-50 px-2 py-1 rounded-lg border border-gray-200">
-                    ${ad.price?.toLocaleString()}
+                <span className="font-bold text-primary bg-admin-bg px-2 py-1 rounded-lg border border-admin-border">
+                    Rs. {ad.price?.toLocaleString()}
                 </span>
             )
         },
@@ -217,7 +217,7 @@ export default function Ads() {
             accessor: 'seller',
             render: (ad) => (
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-600 font-bold text-xs ring-2 ring-white shadow-sm">
+                    <div className="w-8 h-8 rounded-full bg-admin-bg flex items-center justify-center text-primary font-bold text-xs ring-2 ring-white shadow-sm border border-admin-border">
                         {ad.seller?.name?.charAt(0) || 'U'}
                     </div>
                     <div>
@@ -258,7 +258,7 @@ export default function Ads() {
             render: (ad) => (
                 <button
                     onClick={() => setSelectedAd(ad)}
-                    className="p-2 hover:bg-gray-100 text-gray-500 hover:text-primary rounded-lg transition-colors"
+                    className="p-2 hover:bg-admin-bg text-gray-500 hover:text-primary rounded-lg transition-colors"
                 >
                     <Eye size={18} />
                 </button>
@@ -273,14 +273,14 @@ export default function Ads() {
                 subtitle="Review, approve, and manage vehicle advertisements."
                 breadcrumbs={['Dashboard', 'Ads']}
                 actions={
-                    <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-gray-200 shadow-sm">
+                    <div className="flex items-center gap-1 bg-white/80 p-1 rounded-2xl border border-admin-border shadow-sm backdrop-blur-sm">
                         {['', 'PENDING', 'ACTIVE', 'SOLD', 'EXPIRED'].map((s) => (
                             <button
                                 key={s}
                                 onClick={() => setFilter(s)}
                                 className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${filter === s
-                                    ? 'bg-primary text-white shadow-md shadow-primary/30'
-                                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                                    ? 'bg-primary text-white shadow-md shadow-primary/30 outline outline-2 outline-white/20'
+                                    : 'text-gray-500 hover:bg-admin-bg hover:text-primary'
                                     }`}
                             >
                                 {s || 'ALL'}
@@ -314,14 +314,14 @@ export default function Ads() {
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-end animate-fade-in custom-scrollbar">
                     <div className="w-full max-w-2xl bg-white h-full shadow-2xl animate-slide-in-right overflow-y-auto">
                         {/* Header */}
-                        <div className="sticky top-0 bg-white/80 backdrop-blur-md z-10 border-b border-gray-100 p-6 flex justify-between items-center">
+                        <div className="sticky top-0 bg-white/80 backdrop-blur-md z-10 border-b border-admin-border p-6 flex justify-between items-center">
                             <div>
                                 <h2 className="text-2xl font-black text-gray-900">Review Listing</h2>
                                 <p className="text-sm text-gray-500 font-mono">ID: {selectedAd.id}</p>
                             </div>
                             <button
                                 onClick={() => setSelectedAd(null)}
-                                className="p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                                className="p-2 bg-admin-bg hover:bg-admin-border rounded-full text-primary transition-colors"
                             >
                                 <X size={24} />
                             </button>
@@ -329,7 +329,7 @@ export default function Ads() {
 
                         <div className="p-6 space-y-8 pb-32">
                             {/* Image Gallery */}
-                            <div className="relative aspect-video bg-gray-100 rounded-2xl overflow-hidden border border-gray-200 shadow-inner group">
+                            <div className="relative aspect-video bg-admin-bg rounded-2xl overflow-hidden border border-admin-border shadow-inner group">
                                 {selectedAd.AdImage && selectedAd.AdImage.length > 0 ? (
                                     <>
                                         <img
@@ -436,7 +436,7 @@ export default function Ads() {
                                     )}
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-3xl font-black text-primary">${selectedAd.price?.toLocaleString()}</p>
+                                    <p className="text-3xl font-black text-primary">Rs. {selectedAd.price?.toLocaleString()}</p>
                                     <p className="text-sm text-gray-400">Asking Price</p>
                                 </div>
                             </div>
@@ -475,7 +475,7 @@ export default function Ads() {
                                         { label: 'Fuel', value: selectedAd.CarDetails?.[0]?.fuel_type },
                                     ].map((item, i) => (
                                         item.value && (
-                                            <div key={i} className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                            <div key={i} className="bg-admin-bg rounded-xl p-3 border border-admin-border">
                                                 <p className="text-xs text-gray-500 mb-1">{item.label}</p>
                                                 <p className="font-bold text-gray-900 capitalize">{item.value}</p>
                                             </div>
@@ -487,14 +487,14 @@ export default function Ads() {
                             {/* Description */}
                             <div>
                                 <h3 className="text-lg font-bold text-gray-900 mb-4">Description</h3>
-                                <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                                <div className="bg-admin-bg p-6 rounded-2xl border border-admin-border">
                                     <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedAd.description || 'No description provided.'}</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Sticky Action Footer */}
-                        <div className="sticky bottom-0 bg-white/80 backdrop-blur-md p-6 border-t border-gray-100 shadow-lg-reverse flex gap-3">
+                        <div className="sticky bottom-0 bg-white/80 backdrop-blur-md p-6 border-t border-admin-border shadow-lg-reverse flex gap-3">
                             <div className="flex-1"></div>
                             {selectedAd.status === 'PENDING' && (
                                 <>
@@ -525,7 +525,7 @@ export default function Ads() {
                                     </button>
                                     <button
                                         onClick={() => updateStatus(selectedAd.id, 'EXPIRED')}
-                                        className="px-6 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-all flex items-center gap-2"
+                                        className="px-6 py-3 bg-admin-bg text-primary font-bold rounded-xl hover:bg-admin-border transition-all flex items-center gap-2"
                                     >
                                         <Clock size={18} />
                                         Mark as Expired

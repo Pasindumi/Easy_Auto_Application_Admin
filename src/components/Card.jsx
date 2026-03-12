@@ -1,16 +1,16 @@
 import React from 'react';
 import clsx from 'clsx';
 
-export default function Card({ 
-    children, 
-    variant = 'default', 
+export default function Card({
+    children,
+    variant = 'default',
     hover = false,
     padding = 'md',
     className = '',
-    ...props 
+    ...props
 }) {
     const variants = {
-        default: 'bg-white border border-gray-100 shadow-sm',
+        default: 'bg-white border border-admin-border shadow-sm',
         gradient: 'gradient-primary text-white border-0 shadow-primary',
         glass: 'glass border border-white/30',
         bordered: 'bg-white border-2 border-primary/20',
