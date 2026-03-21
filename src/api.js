@@ -61,6 +61,19 @@ export const adsApi = {
     unbanAd: (id) => api.put(`/cars/admin/${id}/unban`),
 };
 
+// Rentals API
+export const rentalsApi = {
+    getAll: (params = {}) => {
+        const { status, page = 1, limit = 20, search = '' } = params;
+        let url = `/rentals/admin/all?page=${page}&limit=${limit}`;
+        if (status) url += `&status=${status}`;
+        if (search) url += `&search=${search}`;
+        return api.get(url);
+    },
+    updateStatus: (id, data) => api.put(`/rentals/admin/${id}/status`, data),
+    verify: (id, data) => api.put(`/rentals/admin/${id}/verify`, data),
+};
+
 // Vehicle Config API
 export const configApi = {
     getTypes: () => api.get('/vehicle-config/types'),
