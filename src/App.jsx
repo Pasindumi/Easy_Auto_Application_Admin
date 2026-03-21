@@ -16,6 +16,7 @@ import SubscribersPage from './pages/SubscribersPage';
 import UsersPage from './pages/UsersPage';
 import AdReportsPage from './pages/AdReportsPage';
 import ProfilePage from './pages/Profile/Index';
+import Rentals from './pages/Rentals/Index';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
               <Route path="/vehicle-types" element={<VehicleTypes />} />
               <Route path="/vehicle-types/:id" element={<VehicleTypeDetails />} />
               <Route path="/ads" element={<Ads />} />
+              <Route path="/rentals" element={<Rentals />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/users" element={<UsersPage />} />
               <Route path="/subscribers" element={<SubscribersPage />} />

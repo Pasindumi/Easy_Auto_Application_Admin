@@ -15,7 +15,8 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
-    Shield
+    Shield,
+    Key
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -25,6 +26,7 @@ export default function Sidebar() {
     const navItems = [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard, end: true },
         { name: 'Ad Management', path: '/ads', icon: Car },
+        { name: 'Rental Management', path: '/rentals', icon: Key },
         { name: 'Vehicle Types', path: '/vehicle-types', icon: Tag },
         { name: 'Users', path: '/users', icon: Users },
         { name: 'Subscribers', path: '/subscribers', icon: Shield },
