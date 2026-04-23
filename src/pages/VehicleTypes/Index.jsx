@@ -1,21 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Plus, Edit2, Trash2, Check, X, ArrowRight, Settings, Activity, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Check, X, ArrowRight, Settings, Activity, ShieldCheck, AlertCircle, Image as ImageIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../components/PageHeader';
+import { configApi } from '../../api';
 
 export default function VehicleTypes() {
     const [types, setTypes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [newTypeName, setNewTypeName] = useState('');
+    const [newTypeImage, setNewTypeImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
     const navigate = useNavigate();
 
     const fetchTypes = async () => {
         setLoading(true);
         try {
-            const res = await axios.get('http://localhost:5000/api/vehicle-config/types');
+            const res = await configApi.getTypes();
             setTypes(res.data);
         } catch (error) {
             console.error(error);
@@ -32,28 +35,39 @@ export default function VehicleTypes() {
         if (!newTypeName) return;
         setRefreshing(true);
         try {
-            const token = localStorage.getItem('adminToken');
-            await axios.post('http://localhost:5000/api/vehicle-config/types', {
-                type_name: newTypeName
-            }, { headers: { Authorization: `Bearer ${token}` } });
+            const formData = new FormData();
+            formData.append('type_name', newTypeName);
+            if (newTypeImage) {
+                formData.append('type_image', newTypeImage);
+            }
+
+            await configApi.addType(formData);
 
             setNewTypeName('');
+            setNewTypeImage(null);
+            setImagePreview(null);
             setShowModal(false);
             fetchTypes();
         } catch (error) {
+            console.error(error);
             alert('Failed to create type');
         } finally {
             setRefreshing(false);
         }
     };
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setNewTypeImage(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
     const toggleStatus = async (id, currentStatus) => {
         try {
-            const token = localStorage.getItem('adminToken');
             const newStatus = currentStatus === 'ACTIVE' ? 'DISABLED' : 'ACTIVE';
-            await axios.put(`http://localhost:5000/api/vehicle-config/types/${id}/status`, {
-                status: newStatus
-            }, { headers: { Authorization: `Bearer ${token}` } });
+            await configApi.updateTypeStatus(id, { status: newStatus });
             fetchTypes();
         } catch (error) {
             console.error('Error toggling status:', error);
@@ -69,10 +83,7 @@ export default function VehicleTypes() {
         if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
 
         try {
-            const token = localStorage.getItem('adminToken');
-            await axios.delete(`http://localhost:5000/api/vehicle-config/types/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await configApi.deleteType(id);
             fetchTypes();
         } catch (error) {
             console.error('Error deleting type:', error);
@@ -155,11 +166,15 @@ export default function VehicleTypes() {
                         {types.map((type, index) => (
                             <div key={type.id} className="p-6 flex items-center justify-between hover:bg-gray-50/50 transition-colors group">
                                 <div className="flex items-center gap-4">
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl ${index % 3 === 0 ? 'bg-admin-bg text-primary border border-admin-border' :
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl overflow-hidden ${index % 3 === 0 ? 'bg-admin-bg text-primary border border-admin-border' :
                                         index % 3 === 1 ? 'bg-purple-100 text-purple-600 border border-purple-200' :
                                             'bg-orange-100 text-orange-600 border border-orange-200'
                                         }`}>
-                                        {type.type_name.charAt(0)}
+                                        {type.type_image ? (
+                                            <img src={type.type_image} alt={type.type_name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            type.type_name.charAt(0)
+                                        )}
                                     </div>
                                     <div>
                                         <h4 className="text-lg font-bold text-gray-900 group-hover:text-primary transition-colors">
@@ -242,6 +257,23 @@ export default function VehicleTypes() {
                                     onChange={e => setNewTypeName(e.target.value)}
                                     autoFocus
                                 />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Display Image</label>
+                                <label className="relative group cursor-pointer block">
+                                    <div className="w-full h-32 rounded-2xl border-2 border-dashed border-admin-border flex items-center justify-center overflow-hidden bg-admin-bg hover:border-primary transition-colors">
+                                        {imagePreview ? (
+                                            <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="text-center">
+                                                <ImageIcon className="text-gray-300 mx-auto mb-1" size={32} />
+                                                <span className="text-xs text-gray-400 font-bold">Click to upload icon</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                                </label>
                             </div>
 
                             <div className="flex gap-3 mt-8">

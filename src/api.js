@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Use environment variable for API base URL, fallback to localhost for development
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://easy-auto-application-backend-1.onrender.com';
 
 const api = axios.create({
     baseURL: `${API_BASE_URL}/api`,
@@ -82,8 +82,11 @@ export const configApi = {
     getModels: (typeId) => api.get(`/vehicle-config/models/${typeId}`),
     getConditions: (typeId) => api.get(`/vehicle-config/conditions/${typeId}`),
 
+    addType: (data) => api.post('/vehicle-config/types', data),
     addBrand: (data) => api.post('/vehicle-config/brands', data),
     updateType: (id, data) => api.put(`/vehicle-config/types/${id}`, data),
+    updateTypeStatus: (id, data) => api.put(`/vehicle-config/types/${id}/status`, data),
+    deleteType: (id) => api.delete(`/vehicle-config/types/${id}`),
     updateBrand: (id, data) => api.put(`/vehicle-config/brands/${id}`, data),
 
     addAttribute: (data) => api.post('/vehicle-config/attributes', data),

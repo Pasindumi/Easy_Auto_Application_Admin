@@ -36,12 +36,17 @@ export default function VehicleTypeDetails() {
     const [newAttr, setNewAttr] = useState({ name: '', dataType: 'TEXT', unit: '', required: false });
     const [newModel, setNewModel] = useState({ brand_id: '', model_name: '' });
     const [newCondition, setNewCondition] = useState('');
+    const [updatingTypeImage, setUpdatingTypeImage] = useState(false);
+    const [typeImagePreview, setTypeImagePreview] = useState(null);
+    const [fetching, setFetching] = useState(false);
 
-    const fetchDetails = async () => {
+    const fetchDetails = React.useCallback(async () => {
+        if (fetching) return;
+        setFetching(true);
         try {
             const typesRes = await configApi.getTypes();
             const found = typesRes.data.find(t => t.id === id);
-            setType(found);
+            if (found) setType(found);
 
             const [brandsRes, attrsRes, modelsRes, conditionsRes] = await Promise.all([
                 configApi.getBrands(id),
@@ -50,27 +55,48 @@ export default function VehicleTypeDetails() {
                 configApi.getConditions(id)
             ]);
 
-            setBrands(brandsRes.data);
-            setAttributes(attrsRes.data);
-            setModels(modelsRes.data);
-            setConditions(conditionsRes.data);
+            setBrands(brandsRes.data || []);
+            setAttributes(attrsRes.data || []);
+            setModels(modelsRes.data || []);
+            setConditions(conditionsRes.data || []);
 
         } catch (error) {
             console.error("Error fetching details:", error);
         } finally {
+            setFetching(false);
             setLoading(false);
         }
-    };
+    }, [id]);
 
     useEffect(() => {
         fetchDetails();
-    }, [id]);
+    }, [fetchDetails]);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
             setBrandImage(file);
             setBrandImagePreview(URL.createObjectURL(file));
+        }
+    };
+
+    const handleTypeImageChange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setTypeImagePreview(URL.createObjectURL(file));
+            setUpdatingTypeImage(true);
+            try {
+                const formData = new FormData();
+                formData.append('type_image', file);
+                const res = await configApi.updateType(id, formData);
+                setType(res.data);
+                alert('Vehicle type image updated successfully!');
+            } catch (error) {
+                console.error('Error updating type image:', error);
+                alert('Failed to update type image');
+            } finally {
+                setUpdatingTypeImage(false);
+            }
         }
     };
 
@@ -252,6 +278,26 @@ export default function VehicleTypeDetails() {
                         </span>
                     </button>
                 ))}
+
+                {/* Type Image Config */}
+                <div className="ml-auto pr-4 flex items-center gap-4">
+                    <label className="relative cursor-pointer group">
+                        <div className="w-10 h-10 rounded-xl border border-admin-border bg-admin-bg flex items-center justify-center overflow-hidden hover:border-primary transition-all">
+                            {updatingTypeImage ? (
+                                <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                            ) : (typeImagePreview || type?.type_image) ? (
+                                <img src={typeImagePreview || type?.type_image} alt="Type" className="w-full h-full object-cover" />
+                            ) : (
+                                <ImageIcon size={20} className="text-gray-400 group-hover:text-primary transition-colors" />
+                            )}
+                        </div>
+                        <input type="file" accept="image/*" className="hidden" onChange={handleTypeImageChange} disabled={updatingTypeImage} />
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-white rounded-full flex items-center justify-center shadow-sm">
+                            <Plus size={10} />
+                        </div>
+                    </label>
+                    <span className="text-xs font-bold text-gray-500 hidden sm:inline">Type Image</span>
+                </div>
             </div>
 
             {/* Content Area */}
